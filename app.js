@@ -1,41 +1,71 @@
-// ATENÇÃO: Insira suas chaves do Supabase aqui
+// ==========================================
+// ATENÇÃO: COLOQUE SUAS CHAVES DO SUPABASE AQUI
+// ==========================================
 const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANONIMA';
+const SUPABASE_ANON_KEY = 'SUA_CHAVE_AQUI';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
-// Duplicar opções de estados (Auxiliar)
-document.getElementById('reg-des-state').innerHTML = document.getElementById('reg-curr-state').innerHTML;
-document.getElementById('reg-des-state').options[0].text = "Estado Desejado";
+// Garante que o HTML carregou antes de mexer na tela
+document.addEventListener("DOMContentLoaded", () => {
+    const currState = document.getElementById('reg-curr-state');
+    const desState = document.getElementById('reg-des-state');
+    if (currState && desState) {
+        desState.innerHTML = currState.innerHTML;
+        desState.options[0].text = "Estado Desejado";
+    }
+});
 
-// Controle de Navegação (SPA)
+// ==========================================
+// CONTROLE DE NAVEGAÇÃO DAS TELAS
+// ==========================================
 function showView(viewId) {
+    // Esconde todas as telas
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(viewId + '-view').classList.add('active');
     
+    // Mostra a tela que o usuário clicou
+    const tela = document.getElementById(viewId + '-view');
+    if (tela) {
+        tela.classList.add('active');
+    }
+    
+    // Carrega os dados correspondentes da tela
     if (viewId === 'search') loadPublicProfiles();
     if (viewId === 'matches') loadMatches();
     if (viewId === 'profile') loadMyProfile();
 }
 
-// Escutando mudanças de Autenticação
+// ==========================================
+// ESCUTANDO LOGIN E LOGOUT
+// ==========================================
 supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
+        // Usuário está LOGADO
         currentUser = session.user;
-        document.getElementById('nav-links').style.display = 'flex';
-        document.getElementById('btn-start').style.display = 'none';
-        showView('search'); // Redireciona ao logar
+        document.body.classList.add('logged-in'); 
+        
+        // Se acabou de fazer login e estava na tela de auth, vai para a busca
+        const authView = document.getElementById('auth-view');
+        if (authView && authView.classList.contains('active')) {
+            showView('search');
+        }
         checkMatchCount();
     } else {
+        // Usuário é VISITANTE
         currentUser = null;
-        document.getElementById('nav-links').style.display = 'none';
-        document.getElementById('btn-start').style.display = 'inline-block';
-        showView('home');
+        document.body.classList.remove('logged-in'); 
+        
+        // Se não tiver nenhuma tela aberta, mostra o Início
+        if (!document.querySelector('.view.active')) {
+            showView('home');
+        }
     }
 });
 
-// Login
+// ==========================================
+// FORMULÁRIOS DE LOGIN E CADASTRO
+// ==========================================
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
@@ -45,20 +75,19 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     if (error) alert('Erro no login: ' + error.message);
 });
 
-// Cadastro (Auth + Inserção no Perfil)
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Auth
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
     
+    // Cria o usuário
     const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
     if (authError) return alert('Erro ao criar conta: ' + authError.message);
     
     const userId = authData.user.id;
 
-    // Inserindo dados Públicos
+    // Salva os dados Públicos
     const { error: pubError } = await supabase.from('public_profiles').insert({
         id: userId,
         current_org: document.getElementById('reg-curr-org').value,
@@ -68,7 +97,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         status: document.getElementById('reg-status').value
     });
 
-    // Inserindo dados Privados
+    // Salva os dados Privados
     const { error: privError } = await supabase.from('private_details').insert({
         id: userId,
         full_name: document.getElementById('reg-name').value,
@@ -78,25 +107,36 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
     if (pubError || privError) {
         alert("Conta criada, mas houve erro ao salvar o perfil. Edite seu perfil depois.");
-        console.error(pubError, privError);
+        console.log(pubError, privError);
     } else {
-        alert("Cadastro realizado com sucesso!");
+        alert("Cadastro realizado com sucesso! Faça login.");
+        document.getElementById('login-email').value = email;
     }
 });
 
-// Logout
 async function logout() {
     await supabase.auth.signOut();
+    showView('home');
 }
 
-// Carregar Perfis Públicos (Anonimizados)
+// ==========================================
+// FUNÇÕES DE BUSCA NO BANCO DE DADOS
+// ==========================================
+
+// 1. Carrega todos os perfis (Visitantes e Logados)
 async function loadPublicProfiles() {
     const list = document.getElementById('public-profiles-list');
     list.innerHTML = 'Carregando...';
 
-    const { data, error } = await supabase.from('public_profiles').select('*').neq('id', currentUser.id);
-    if (error) return list.innerHTML = 'Erro ao carregar perfis.';
-    if (data.length === 0) return list.innerHTML = 'Nenhum perfil encontrado.';
+    // Se estiver logado, oculta o próprio perfil. Se for visitante, busca todos.
+    let query = supabase.from('public_profiles').select('*');
+    if (currentUser) {
+        query = query.neq('id', currentUser.id);
+    }
+
+    const { data, error } = await query;
+    if (error) return list.innerHTML = 'Erro ao carregar perfis: ' + error.message;
+    if (data.length === 0) return list.innerHTML = 'Nenhum perfil cadastrado ainda.';
 
     list.innerHTML = data.map(p => `
         <div class="card">
@@ -104,12 +144,12 @@ async function loadPublicProfiles() {
             <p><strong>De:</strong> ${p.current_org} / ${p.current_state}</p>
             <p><strong>Para:</strong> ${p.desired_org || 'Qualquer'} / ${p.desired_state}</p>
             <p><strong>Situação:</strong> ${p.status}</p>
-            <span class="tag">Dados Protegidos</span>
+            <span class="tag">Contatos Ocultos</span>
         </div>
     `).join('');
 }
 
-// Carregar Matches Automaticamente via View (Bypass RLS com segurança do lado do BD)
+// 2. Carrega Matchs Automáticos (Só para logados)
 async function loadMatches() {
     const list = document.getElementById('matches-list');
     list.innerHTML = 'Buscando matches...';
@@ -118,7 +158,7 @@ async function loadMatches() {
     if (error) return list.innerHTML = 'Erro ao carregar matches.';
     
     if (data.length === 0) {
-        list.innerHTML = 'Você ainda não possui matches. Quando alguém do estado que você deseja tiver interesse no seu estado atual, aparecerá aqui.';
+        list.innerHTML = 'Você ainda não possui matches. Quando houver reciprocidade no seu estado desejado, os contatos aparecerão aqui.';
         return;
     }
 
@@ -136,7 +176,7 @@ async function loadMatches() {
     `).join('');
 }
 
-// Checar Notificação de Matches
+// 3. Verifica o número de Matches (Notificação)
 async function checkMatchCount() {
     const { data } = await supabase.from('user_matches').select('match_id');
     const badge = document.getElementById('match-badge');
@@ -149,7 +189,7 @@ async function checkMatchCount() {
     }
 }
 
-// Carregar Meu Perfil
+// 4. Carrega Perfil do Usuário
 async function loadMyProfile() {
     const div = document.getElementById('my-profile-info');
     div.innerHTML = 'Carregando...';
