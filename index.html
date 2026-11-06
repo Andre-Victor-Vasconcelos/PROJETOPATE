@@ -10,17 +10,20 @@
 <body>
     <nav id="navbar">
         <div class="logo">Match da Permuta <span>ATE</span></div>
-        <ul id="nav-links" style="display: none;">
-            <li><a href="#" onclick="showView('home')">Início</a></li>
-            <li><a href="#" onclick="showView('search')">Buscar Perfis</a></li>
-            <li><a href="#" onclick="showView('matches')">Meus Matches <span id="match-badge"></span></a></li>
-            <li><a href="#" onclick="showView('profile')">Meu Perfil</a></li>
-            <li><a href="#" onclick="logout()">Sair</a></li>
+        <ul id="nav-links">
+            <li><a href="javascript:void(0)" onclick="showView('home')">Início</a></li>
+            <li><a href="javascript:void(0)" onclick="showView('search')">Buscar Perfis</a></li>
+            
+            <li class="logged-in-only"><a href="javascript:void(0)" onclick="showView('matches')">Meus Matches <span id="match-badge"></span></a></li>
+            <li class="logged-in-only"><a href="javascript:void(0)" onclick="showView('profile')">Meu Perfil</a></li>
+            <li class="logged-in-only"><a href="javascript:void(0)" onclick="logout()">Sair</a></li>
+            
+            <li class="logged-out-only"><a href="javascript:void(0)" onclick="showView('auth')">Entrar / Cadastrar</a></li>
         </ul>
     </nav>
 
     <main>
-        <!-- View: Home -->
+        <!-- Início -->
         <section id="home-view" class="view active">
             <div class="hero">
                 <h1>Sua próxima lotação pode estar a um match de distância.</h1>
@@ -28,15 +31,16 @@
                 <div class="disclaimer-box">
                     <strong>Aviso:</strong> O match representa apenas compatibilidade de interesses e não garante a autorização administrativa da permuta, que deverá observar estritamente a Portaria DICAT/SE/MGI nº 4.443/2026.
                 </div>
-                <button class="btn-primary mt-4" id="btn-start" onclick="showView('auth')">Entrar ou Cadastrar-se</button>
+                <button class="btn-primary mt-4 logged-out-only" onclick="showView('auth')">Entrar ou Cadastrar-se</button>
+                <button class="btn-primary mt-4 logged-in-only" onclick="showView('search')">Ver Perfis</button>
             </div>
         </section>
 
-        <!-- View: Autenticação / Cadastro -->
+        <!-- Login / Cadastro -->
         <section id="auth-view" class="view">
             <div class="auth-container">
                 <div class="auth-box">
-                    <h2>Login</h2>
+                    <h2>Já tenho conta</h2>
                     <form id="login-form">
                         <input type="email" id="login-email" placeholder="E-mail" required>
                         <input type="password" id="login-password" placeholder="Senha" required>
@@ -45,7 +49,7 @@
                 </div>
                 
                 <div class="auth-box">
-                    <h2>Cadastro de ATE</h2>
+                    <h2>Criar meu Perfil ATE</h2>
                     <form id="register-form">
                         <input type="email" id="reg-email" placeholder="E-mail" required>
                         <input type="password" id="reg-password" placeholder="Crie uma Senha" required>
@@ -61,7 +65,7 @@
                             </select>
                             <select id="reg-des-state" required>
                                 <option value="" disabled selected>Estado Desejado</option>
-                                <!-- Mesmas opções do Estado Atual via JS -->
+                                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
                             </select>
                         </div>
                         
@@ -73,34 +77,33 @@
                             <option value="estágio probatório">Estágio Probatório</option>
                         </select>
                         
-                        <button type="submit" class="btn-primary">Criar Conta e Perfil</button>
+                        <button type="submit" class="btn-primary">Criar Conta</button>
                     </form>
                 </div>
             </div>
         </section>
 
-        <!-- View: Busca de Perfis (Público/Anonimizado) -->
+        <!-- Busca de Perfis -->
         <section id="search-view" class="view">
             <h2>Perfis Disponíveis</h2>
-            <p>Os dados de contato estão ocultos. Eles serão liberados automaticamente quando houver um Match recíproco.</p>
+            <p>Os contatos ficam ocultos e só são liberados automaticamente quando há um Match geográfico recíproco.</p>
             <div id="public-profiles-list" class="card-grid"></div>
         </section>
 
-        <!-- View: Meus Matches -->
+        <!-- Matches -->
         <section id="matches-view" class="view">
             <h2>Meus Matches</h2>
-            <p>O sistema identificou reciprocidade geográfica automática nestes perfis. Entre em contato para alinhar os detalhes da permuta.</p>
+            <p>Seus interesses bateram com os destes perfis. Entre em contato!</p>
             <div id="matches-list" class="card-grid"></div>
             <div class="disclaimer-box mt-4">
-                <strong>Lembrete Legal:</strong> A portaria DICAT/SE/MGI nº 4.443/2026 rege a Carreira de Analista Técnico do Poder Executivo Federal. O acordo entre as partes deve passar pelo crivo e interesse da Administração Pública.
+                <strong>Lembrete:</strong> O acordo entre as partes deve passar pelo crivo e interesse da Administração Pública (Portaria DICAT/SE/MGI nº 4.443/2026).
             </div>
         </section>
 
-        <!-- View: Meu Perfil -->
+        <!-- Meu Perfil -->
         <section id="profile-view" class="view">
             <div class="profile-box">
                 <h2>Meus Dados</h2>
-                <p>Seus dados pessoais estão protegidos e não aparecerão na busca geral.</p>
                 <div id="my-profile-info" class="profile-info-display"></div>
             </div>
         </section>
