@@ -3,12 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Match da Permutaa - ATE</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Script do Supabase -->
+    <title>Match da Permuta - ATE</title>
+    <!-- Script Oficial do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* =========================================
+           ESTILOS (CSS)
+           ========================================= */
+        :root {
+            --primary: #004d99;
+            --primary-light: #337ab7;
+            --bg-color: #f4f7f9;
+            --text-color: #333;
+            --card-bg: #fff;
+            --success: #28a745;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); }
+        nav { background-color: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        .logo span { font-weight: 300; opacity: 0.8; }
+        #nav-links { list-style: none; display: flex; gap: 1.5rem; }
+        #nav-links a { color: white; text-decoration: none; font-weight: 500; transition: opacity 0.2s; }
+        #nav-links a:hover { opacity: 0.8; }
+        main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .hero { text-align: center; padding: 4rem 1rem; }
+        .hero h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; }
+        .disclaimer-box { background-color: #e9ecef; border-left: 4px solid var(--primary-light); padding: 1rem; font-size: 0.9rem; color: #555; text-align: left; margin: 1rem 0; }
+        .btn-primary { background-color: var(--primary); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; }
+        .btn-primary:hover { background-color: var(--primary-light); }
+        .btn-link { background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; margin-top: 0.8rem; font-size: 0.9rem; padding: 0; }
+        .btn-link:hover { color: var(--primary-light); }
+
+        .auth-container { display: flex; gap: 2rem; flex-wrap: wrap; }
+        .auth-box { flex: 1; min-width: 300px; background: var(--card-bg); padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .auth-box form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+        input, select { padding: 0.8rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row > select { flex: 1; }
+
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-light); }
+        .card.match-card { border-top: 4px solid var(--success); }
+        .card h3 { color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .card p { margin-bottom: 0.4rem; font-size: 0.95rem; }
+        .tag { display: inline-block; background: #eee; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 0.5rem;}
+        .match-badge { display: inline-block; background: var(--success); color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 1rem; }
+        .mt-4 { margin-top: 1.5rem; }
+        hr { border: none; border-top: 1px solid #eee; margin: 10px 0; }
+
+        body:not(.logged-in) .logged-in-only { display: none !important; }
+        body.logged-in .logged-out-only { display: none !important; }
+
+        @media (max-width: 768px) { #nav-links { flex-wrap: wrap; justify-content: center; } }
+    </style>
 </head>
 <body>
+
+    <!-- NAVEGAÇÃO -->
     <nav id="navbar">
         <div class="logo">Match da Permuta <span>ATE</span></div>
         <ul id="nav-links">
@@ -24,35 +83,32 @@
     </nav>
 
     <main>
-        <!-- Tela: Início -->
+        <!-- TELA: INÍCIO -->
         <section id="home-view" class="view active">
             <div class="hero">
                 <h1>Sua próxima lotação pode estar a um match de distância.</h1>
                 <p>Plataforma exclusiva para servidores da Carreira de Analista Técnico do Poder Executivo Federal (ATE).</p>
                 <div class="disclaimer-box">
-                    <strong>Aviso:</strong> O match representa apenas compatibilidade de interesses e não garante a autorização administrativa da permuta, que deverá observar estritamente a Portaria DICAT/SE/MGI nº 4.443/2026.
+                    <strong>Aviso:</strong> O match representa apenas compatibilidade de interesses e não garante a autorização administrativa da permuta, observando a Portaria DICAT/SE/MGI nº 4.443/2026.
                 </div>
                 <button class="btn-primary mt-4 logged-out-only" onclick="showView('auth')">Entrar ou Cadastrar-se</button>
                 <button class="btn-primary mt-4 logged-in-only" onclick="showView('search')">Ver Perfis</button>
             </div>
         </section>
 
-        <!-- Tela: Login / Cadastro -->
+        <!-- TELA: LOGIN E CADASTRO -->
         <section id="auth-view" class="view">
             <div class="auth-container">
-                <!-- Caixa de Login -->
                 <div class="auth-box">
                     <h2>Já tenho conta</h2>
                     <form id="login-form">
                         <input type="email" id="login-email" placeholder="E-mail" required>
                         <input type="password" id="login-password" placeholder="Senha" required>
                         <button type="submit" class="btn-primary">Entrar</button>
-                        <!-- Botão de recuperar senha -->
                         <button type="button" class="btn-link" onclick="forgotPassword()">Esqueci minha senha</button>
                     </form>
                 </div>
                 
-                <!-- Caixa de Cadastro -->
                 <div class="auth-box">
                     <h2>Criar meu Perfil ATE</h2>
                     <form id="register-form">
@@ -88,7 +144,7 @@
             </div>
         </section>
 
-        <!-- Tela: Redefinir Senha (Escondida por padrão) -->
+        <!-- TELA: REDEFINIR SENHA -->
         <section id="reset-password-view" class="view">
             <div class="auth-container">
                 <div class="auth-box" style="margin: 0 auto; max-width: 400px;">
@@ -102,24 +158,21 @@
             </div>
         </section>
 
-        <!-- Tela: Busca de Perfis -->
+        <!-- TELA: BUSCA -->
         <section id="search-view" class="view">
             <h2>Perfis Disponíveis</h2>
-            <p>Os contatos ficam ocultos e só são liberados automaticamente quando há um Match geográfico recíproco.</p>
+            <p>Os contatos ficam ocultos e só são liberados quando há um Match recíproco.</p>
             <div id="public-profiles-list" class="card-grid"></div>
         </section>
 
-        <!-- Tela: Matches -->
+        <!-- TELA: MATCHES -->
         <section id="matches-view" class="view">
             <h2>Meus Matches</h2>
             <p>Seus interesses bateram com os destes perfis. Entre em contato!</p>
             <div id="matches-list" class="card-grid"></div>
-            <div class="disclaimer-box mt-4">
-                <strong>Lembrete:</strong> O acordo entre as partes deve passar pelo crivo e interesse da Administração Pública (Portaria DICAT/SE/MGI nº 4.443/2026).
-            </div>
         </section>
 
-        <!-- Tela: Meu Perfil -->
+        <!-- TELA: MEU PERFIL -->
         <section id="profile-view" class="view">
             <div class="profile-box">
                 <h2>Meus Dados</h2>
@@ -128,7 +181,44 @@
         </section>
     </main>
 
-    <!-- O ?v=4 no final força seu navegador a pegar a versão nova! -->
-    <script src="app.js?v=4"></script>
-</body>
-</html>
+    <script>
+        /* =========================================
+           LÓGICA JAVASCRIPT (SISTEMA)
+           ========================================= */
+        
+        // SUAS CREDENCIAIS JÁ ESTÃO AQUI INSERIDAS CORRETAMENTE:
+        const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
+        
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+
+        // TROCA DE TELAS
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const tela = document.getElementById(viewId + '-view');
+            if (tela) tela.classList.add('active');
+            
+            if (viewId === 'search') loadPublicProfiles();
+            if (viewId === 'matches') loadMatches();
+            if (viewId === 'profile') loadMyProfile();
+        }
+
+        // DETECTA SE ESTÁ LOGADO
+        db.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                showView('reset-password');
+                return;
+            }
+
+            if (session) {
+                currentUser = session.user;
+                document.body.classList.add('logged-in'); 
+                const authView = document.getElementById('auth-view');
+                if (authView && authView.classList.contains('active')) {
+                    showView('search');
+                }
+                checkMatchCount();
+            } else {
+                currentUser = null;
+                document.body.classList.remove('logged-in');
