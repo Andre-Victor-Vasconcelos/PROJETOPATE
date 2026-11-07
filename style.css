@@ -51,6 +51,10 @@ input, select { padding: 0.8rem; border: 1px solid #ccc; border-radius: 4px; fon
 .mt-4 { margin-top: 1.5rem; }
 hr { border: none; border-top: 1px solid #eee; margin: 10px 0; }
 
+/* Botão estilo link para recuperar senha */
+.btn-link { background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; margin-top: 0.8rem; font-size: 0.9rem; padding: 0; }
+.btn-link:hover { color: var(--primary-light); }
+
 /* Lógica visual de Menu - Visitante vs Logado */
 body:not(.logged-in) .logged-in-only { display: none !important; }
 body.logged-in .logged-out-only { display: none !important; }
