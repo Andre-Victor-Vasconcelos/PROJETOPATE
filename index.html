@@ -6,86 +6,105 @@
     <title>Match da Permuta - ATE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #004d99; --primary-light: #337ab7; --bg-color: #f4f7f9; --text-color: #333; --card-bg: #fff; --success: #28a745; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--bg-color); }
-        nav { background-color: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .view { display: none; }
+        :root { --primary: #004d99; --accent: #28a745; --bg: #f4f7f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; }
+        .nav-links { list-style: none; display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; cursor: pointer; }
+        .view { display: none; padding: 2rem; max-width: 800px; margin: auto; }
         .view.active { display: block; }
-        .btn-primary { background-color: var(--primary); color: white; border: none; padding: 0.8rem 1.5rem; cursor: pointer; }
-        .auth-box { background: white; padding: 2rem; margin: 2rem auto; max-width: 400px; }
-        body:not(.logged-in) .logged-in-only { display: none !important; }
-        body.logged-in .logged-out-only { display: none !important; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        input, select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { opacity: 0.9; }
+        .btn-register { background: var(--accent); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">Match da Permuta <span>ATE</span></div>
-        <ul id="nav-links" style="display: flex; list-style: none; gap: 1rem;">
-            <li><a href="#" onclick="showView('home')">Início</a></li>
-            <li><a href="#" onclick="showView('search')">Buscar</a></li>
-            <li class="logged-in-only"><a href="#" onclick="showView('matches')">Matches</a></li>
-            <li class="logged-in-only"><a href="#" onclick="logout()">Sair</a></li>
-            <li class="logged-out-only"><a href="#" onclick="showView('auth')">Entrar</a></li>
-        </ul>
-    </nav>
+<nav>
+    <div class="logo"><strong>Match da Permuta</strong> ATE</div>
+    <ul class="nav-links">
+        <li><a onclick="showView('home')">Início</a></li>
+        <li class="logged-in"><a onclick="showView('search')">Busca</a></li>
+        <li class="logged-in"><a onclick="showView('matches')">Meus Matches</a></li>
+        <li class="logged-in"><a onclick="logout()">Sair</a></li>
+        <li class="logged-out"><a onclick="showView('auth')">Entrar/Cadastro</a></li>
+    </ul>
+</nav>
 
-    <main id="app-container">
-        <section id="home-view" class="view active">
-            <div style="text-align: center; padding: 2rem;">
-                <h1>Match da Permuta ATE</h1>
-                <button class="btn-primary" onclick="showView('auth')">Entrar / Cadastrar</button>
-            </div>
-        </section>
+<main id="app">
+    <section id="home-view" class="view active">
+        <h1>Bem-vindo ao Match da Permuta ATE</h1>
+        <p>A ferramenta para encontrar sua permuta conforme a Portaria DICAT/SE/MGI nº 4.443/2026.</p>
+    </section>
 
-        <section id="auth-view" class="view">
-            <div class="auth-box">
-                <h2>Login</h2>
-                <form id="login-form">
-                    <input type="email" id="login-email" placeholder="Email" required style="width:100%; margin-bottom:1rem;">
-                    <input type="password" id="login-password" placeholder="Senha" required style="width:100%; margin-bottom:1rem;">
-                    <button type="submit" class="btn-primary" style="width:100%;">Entrar</button>
-                </form>
-            </div>
-        </section>
+    <section id="auth-view" class="view">
+        <div class="card">
+            <h2>Login</h2>
+            <form id="login-form">
+                <input type="email" id="email" placeholder="E-mail" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <hr>
+            <h2 id="reg-title">Ou Criar Cadastro</h2>
+            <form id="register-form">
+                <input type="text" id="reg-name" placeholder="Nome Completo" required>
+                <input type="text" id="reg-phone" placeholder="WhatsApp" required>
+                <input type="text" id="reg-curr-org" placeholder="Órgão Atual" required>
+                <select id="reg-curr-state"><option value="DF">DF</option><option value="ES">ES</option><option value="SP">SP</option></select>
+                <select id="reg-des-state"><option value="DF">DF</option><option value="ES">ES</option><option value="SP">SP</option></select>
+                <button type="submit" class="btn-register">Cadastrar</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="search-view" class="view"><h2>Perfis Disponíveis</h2><div id="profiles"></div></section>
+    <section id="matches-view" class="view"><h2>Matches Confirmados</h2><div id="matches"></div></section>
+</main>
+
+<script>
+    const db = window.supabase.createClient('https://wspghpjjtqvlcvlskbbp.supabase.co', 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2');
+
+    window.showView = (id) => {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id + '-view').classList.add('active');
+    };
+
+    window.logout = async () => { await db.auth.signOut(); location.reload(); };
+
+    // Cadastro
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const { data, error } = await db.auth.signUp({ email, pass });
+        if(error) return alert(error.message);
         
-        <section id="search-view" class="view"><h2>Perfis</h2><div id="public-profiles-list"></div></section>
-        <section id="matches-view" class="view"><h2>Meus Matches</h2><div id="matches-list"></div></section>
-    </main>
-
-    <script>
-        // DOMContentLoaded garante que tudo foi carregado antes de rodar qualquer coisa
-        document.addEventListener("DOMContentLoaded", () => {
-            
-            const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
-            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-            // Exportando funções para o Window para o onclick conseguir enxergar
-            window.showView = (viewId) => {
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                document.getElementById(viewId + '-view').classList.add('active');
-            };
-
-            window.logout = async () => {
-                await db.auth.signOut();
-                location.reload();
-            };
-
-            document.getElementById('login-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                const { error } = await db.auth.signInWithPassword({ email, password });
-                if (error) alert(error.message);
-                else location.reload();
-            });
-
-            db.auth.onAuthStateChange((event, session) => {
-                if (session) document.body.classList.add('logged-in');
-            });
+        await db.from('public_profiles').insert({
+            id: data.user.id,
+            current_org: document.getElementById('reg-curr-org').value,
+            current_state: document.getElementById('reg-curr-state').value,
+            desired_state: document.getElementById('reg-des-state').value,
+            status: 'estável'
         });
-    </script>
+        alert('Cadastro realizado! Faça login.');
+    });
+
+    // Login
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const { error } = await db.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
+        if(error) alert(error.message); else location.reload();
+    });
+
+    // Controle de Visibilidade
+    db.auth.onAuthStateChange((event, session) => {
+        document.querySelectorAll('.logged-in').forEach(el => el.style.display = session ? 'block' : 'none');
+        document.querySelectorAll('.logged-out').forEach(el => el.style.display = session ? 'none' : 'block');
+    });
+</script>
 </body>
 </html>
