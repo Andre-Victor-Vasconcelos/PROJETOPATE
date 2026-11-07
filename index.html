@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Match da Permuta - ATE</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Script do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -23,7 +24,7 @@
     </nav>
 
     <main>
-        <!-- Início -->
+        <!-- Tela: Início -->
         <section id="home-view" class="view active">
             <div class="hero">
                 <h1>Sua próxima lotação pode estar a um match de distância.</h1>
@@ -36,18 +37,22 @@
             </div>
         </section>
 
-        <!-- Login / Cadastro -->
+        <!-- Tela: Login / Cadastro -->
         <section id="auth-view" class="view">
             <div class="auth-container">
+                <!-- Caixa de Login -->
                 <div class="auth-box">
                     <h2>Já tenho conta</h2>
                     <form id="login-form">
                         <input type="email" id="login-email" placeholder="E-mail" required>
                         <input type="password" id="login-password" placeholder="Senha" required>
                         <button type="submit" class="btn-primary">Entrar</button>
+                        <!-- Botão de recuperar senha -->
+                        <button type="button" class="btn-link" onclick="forgotPassword()">Esqueci minha senha</button>
                     </form>
                 </div>
                 
+                <!-- Caixa de Cadastro -->
                 <div class="auth-box">
                     <h2>Criar meu Perfil ATE</h2>
                     <form id="register-form">
@@ -83,14 +88,28 @@
             </div>
         </section>
 
-        <!-- Busca de Perfis -->
+        <!-- Tela: Redefinir Senha (Escondida por padrão) -->
+        <section id="reset-password-view" class="view">
+            <div class="auth-container">
+                <div class="auth-box" style="margin: 0 auto; max-width: 400px;">
+                    <h2>Criar Nova Senha</h2>
+                    <p>Digite sua nova senha abaixo.</p>
+                    <form id="reset-password-form">
+                        <input type="password" id="new-password" placeholder="Nova Senha" required>
+                        <button type="submit" class="btn-primary">Atualizar Senha</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tela: Busca de Perfis -->
         <section id="search-view" class="view">
             <h2>Perfis Disponíveis</h2>
             <p>Os contatos ficam ocultos e só são liberados automaticamente quando há um Match geográfico recíproco.</p>
             <div id="public-profiles-list" class="card-grid"></div>
         </section>
 
-        <!-- Matches -->
+        <!-- Tela: Matches -->
         <section id="matches-view" class="view">
             <h2>Meus Matches</h2>
             <p>Seus interesses bateram com os destes perfis. Entre em contato!</p>
@@ -100,7 +119,7 @@
             </div>
         </section>
 
-        <!-- Meu Perfil -->
+        <!-- Tela: Meu Perfil -->
         <section id="profile-view" class="view">
             <div class="profile-box">
                 <h2>Meus Dados</h2>
@@ -109,6 +128,7 @@
         </section>
     </main>
 
-    <script src="app.js"></script>
+    <!-- O ?v=4 no final força seu navegador a pegar a versão nova! -->
+    <script src="app.js?v=4"></script>
 </body>
 </html>
