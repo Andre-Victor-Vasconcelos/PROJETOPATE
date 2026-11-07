@@ -1,35 +1,30 @@
 // INSIRA SEUS DADOS DO SUPABASE AQUI (Entre as aspas)
-const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
+const SUPABASE_URL = 'COLE_AQUI_SUA_URL';
+const SUPABASE_ANON_KEY = 'COLE_AQUI_SUA_CHAVE_PUBLICABLE';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// SOLUÇÃO DO ERRO: Mudamos o nome da variável de "supabase" para "db" (evita conflito)
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 // FUNÇÃO: Trocar de telas (Home, Login, Busca, etc)
 function showView(viewId) {
-    // Remove classe ativa de todas as telas
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    
-    // Adiciona classe ativa na tela escolhida
     const tela = document.getElementById(viewId + '-view');
     if (tela) {
         tela.classList.add('active');
     }
-    
-    // Atualiza os dados da tela
     if (viewId === 'search') loadPublicProfiles();
     if (viewId === 'matches') loadMatches();
     if (viewId === 'profile') loadMyProfile();
 }
 
 // OUVINTE: Verifica sempre se o usuário está logado ou não
-supabase.auth.onAuthStateChange((event, session) => {
+db.auth.onAuthStateChange((event, session) => {
     if (session) {
         // Logou
         currentUser = session.user;
         document.body.classList.add('logged-in'); 
         
-        // Se estiver na tela de login, manda para a busca de perfis
         const authView = document.getElementById('auth-view');
         if (authView && authView.classList.contains('active')) {
             showView('search');
@@ -40,7 +35,6 @@ supabase.auth.onAuthStateChange((event, session) => {
         currentUser = null;
         document.body.classList.remove('logged-in'); 
         
-        // Se estiver solto sem tela, vai pra Home
         const activeView = document.querySelector('.view.active');
         if (!activeView) {
             showView('home');
@@ -54,7 +48,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await db.auth.signInWithPassword({ email, password });
     if (error) {
         alert('Erro no login. Verifique seu e-mail e senha.');
     }
@@ -67,14 +61,14 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
     
-    // 1. Cria usuário no Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    // 1. Cria usuário
+    const { data: authData, error: authError } = await db.auth.signUp({ email, password });
     if (authError) return alert('Erro ao criar conta: ' + authError.message);
     
     const userId = authData.user.id;
 
     // 2. Salva Dados Públicos
-    await supabase.from('public_profiles').insert({
+    await db.from('public_profiles').insert({
         id: userId,
         current_org: document.getElementById('reg-curr-org').value,
         current_state: document.getElementById('reg-curr-state').value,
@@ -84,7 +78,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     });
 
     // 3. Salva Dados Privados
-    await supabase.from('private_details').insert({
+    await db.from('private_details').insert({
         id: userId,
         full_name: document.getElementById('reg-name').value,
         email: email,
@@ -98,7 +92,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
 // AÇÃO: Sair da conta
 async function logout() {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
     showView('home');
 }
 
@@ -107,8 +101,7 @@ async function loadPublicProfiles() {
     const list = document.getElementById('public-profiles-list');
     list.innerHTML = 'Buscando perfis...';
 
-    // Se estiver logado, não busca a si mesmo
-    let query = supabase.from('public_profiles').select('*');
+    let query = db.from('public_profiles').select('*');
     if (currentUser) {
         query = query.neq('id', currentUser.id);
     }
@@ -133,7 +126,7 @@ async function loadMatches() {
     const list = document.getElementById('matches-list');
     list.innerHTML = 'Procurando matches...';
 
-    const { data, error } = await supabase.from('user_matches').select('*');
+    const { data, error } = await db.from('user_matches').select('*');
     if (error) return list.innerHTML = 'Erro ao buscar matches.';
     
     if (data.length === 0) {
@@ -158,7 +151,7 @@ async function loadMatches() {
 // UTILIDADE: Contador do Menu de Matches
 async function checkMatchCount() {
     if (!currentUser) return;
-    const { data } = await supabase.from('user_matches').select('match_id');
+    const { data } = await db.from('user_matches').select('match_id');
     const badge = document.getElementById('match-badge');
     if (data && data.length > 0) {
         badge.textContent = `(${data.length})`;
@@ -173,8 +166,8 @@ async function loadMyProfile() {
     const div = document.getElementById('my-profile-info');
     div.innerHTML = 'Carregando dados...';
 
-    const { data: pub } = await supabase.from('public_profiles').select('*').eq('id', currentUser.id).single();
-    const { data: priv } = await supabase.from('private_details').select('*').eq('id', currentUser.id).single();
+    const { data: pub } = await db.from('public_profiles').select('*').eq('id', currentUser.id).single();
+    const { data: priv } = await db.from('private_details').select('*').eq('id', currentUser.id).single();
 
     if (!pub || !priv) return div.innerHTML = 'Não foi possível carregar seu perfil.';
 
