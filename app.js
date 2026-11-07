@@ -1,12 +1,10 @@
 // INSIRA SEUS DADOS DO SUPABASE AQUI (Entre as aspas)
-const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
+const SUPABASE_URL = 'COLE_AQUI_SUA_URL';
+const SUPABASE_ANON_KEY = 'COLE_AQUI_SUA_CHAVE_PUBLICABLE';
 
-// SOLUÇÃO DO ERRO: Mudamos o nome da variável de "supabase" para "db" (evita conflito)
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
-// FUNÇÃO: Trocar de telas (Home, Login, Busca, etc)
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     const tela = document.getElementById(viewId + '-view');
@@ -18,10 +16,15 @@ function showView(viewId) {
     if (viewId === 'profile') loadMyProfile();
 }
 
-// OUVINTE: Verifica sempre se o usuário está logado ou não
+// OUVINTE DE AUTENTICAÇÃO (Agora detecta quando o usuário quer redefinir senha)
 db.auth.onAuthStateChange((event, session) => {
+    // Se o evento for RECUPERAÇÃO DE SENHA, mostra a tela de nova senha
+    if (event === 'PASSWORD_RECOVERY') {
+        showView('reset-password');
+        return;
+    }
+
     if (session) {
-        // Logou
         currentUser = session.user;
         document.body.classList.add('logged-in'); 
         
@@ -31,7 +34,6 @@ db.auth.onAuthStateChange((event, session) => {
         }
         checkMatchCount();
     } else {
-        // Deslogou / Visitante
         currentUser = null;
         document.body.classList.remove('logged-in'); 
         
@@ -42,7 +44,7 @@ db.auth.onAuthStateChange((event, session) => {
     }
 });
 
-// AÇÃO: Fazer Login
+// AÇÃO: Login
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
@@ -50,11 +52,45 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     
     const { error } = await db.auth.signInWithPassword({ email, password });
     if (error) {
-        alert('Erro no login. Verifique seu e-mail e senha.');
+        alert('Erro no login: ' + error.message);
     }
 });
 
-// AÇÃO: Fazer Cadastro
+// AÇÃO: Solicitar Recuperação de Senha
+async function forgotPassword() {
+    const email = document.getElementById('login-email').value;
+    if (!email) {
+        return alert("Por favor, digite seu e-mail no campo acima e clique em 'Esqueci minha senha' novamente.");
+    }
+    
+    // Pede ao Supabase para enviar o e-mail de recuperação
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname,
+    });
+    
+    if (error) {
+        alert("Erro ao enviar e-mail: " + error.message);
+    } else {
+        alert("As instruções de recuperação foram enviadas para o seu e-mail!");
+    }
+}
+
+// AÇÃO: Salvar a Nova Senha (tela de redefinição)
+document.getElementById('reset-password-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById('new-password').value;
+    
+    const { error } = await db.auth.updateUser({ password: newPassword });
+    
+    if (error) {
+        alert("Erro ao atualizar senha: " + error.message);
+    } else {
+        alert("Senha atualizada com sucesso!");
+        showView('search'); // Manda o usuário para a busca
+    }
+});
+
+// AÇÃO: Cadastro (Agora com verificação estrita de erros)
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -68,7 +104,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const userId = authData.user.id;
 
     // 2. Salva Dados Públicos
-    await db.from('public_profiles').insert({
+    const { error: pubError } = await db.from('public_profiles').insert({
         id: userId,
         current_org: document.getElementById('reg-curr-org').value,
         current_state: document.getElementById('reg-curr-state').value,
@@ -77,37 +113,43 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         status: document.getElementById('reg-status').value
     });
 
+    if (pubError) {
+        return alert('Falha ao salvar dados públicos. Detalhe: ' + pubError.message);
+    }
+
     // 3. Salva Dados Privados
-    await db.from('private_details').insert({
+    const { error: privError } = await db.from('private_details').insert({
         id: userId,
         full_name: document.getElementById('reg-name').value,
         email: email,
         phone: document.getElementById('reg-phone').value
     });
 
-    alert("Cadastro realizado! Faça login agora na tela ao lado.");
-    document.getElementById('login-email').value = email;
-    document.getElementById('login-password').focus();
+    if (privError) {
+        return alert('Falha ao salvar dados privados. Detalhe: ' + privError.message);
+    }
+
+    alert("Cadastro realizado! Você foi conectado com sucesso.");
+    // Como tiramos a confirmação de email, o sistema loga ele automaticamente, então podemos limpar o form
+    document.getElementById('register-form').reset(); 
 });
 
-// AÇÃO: Sair da conta
+// AÇÃO: Sair
 async function logout() {
     await db.auth.signOut();
     showView('home');
 }
 
-// BUSCA 1: Perfis Disponíveis
+// BUSCA 1: Perfis
 async function loadPublicProfiles() {
     const list = document.getElementById('public-profiles-list');
     list.innerHTML = 'Buscando perfis...';
 
     let query = db.from('public_profiles').select('*');
-    if (currentUser) {
-        query = query.neq('id', currentUser.id);
-    }
+    if (currentUser) query = query.neq('id', currentUser.id);
 
     const { data, error } = await query;
-    if (error) return list.innerHTML = 'Erro de conexão com o banco de dados.';
+    if (error) return list.innerHTML = 'Erro de conexão com o banco.';
     if (data.length === 0) return list.innerHTML = 'Nenhum servidor cadastrado ainda.';
 
     list.innerHTML = data.map(p => `
@@ -121,7 +163,7 @@ async function loadPublicProfiles() {
     `).join('');
 }
 
-// BUSCA 2: Meus Matches
+// BUSCA 2: Matches
 async function loadMatches() {
     const list = document.getElementById('matches-list');
     list.innerHTML = 'Procurando matches...';
@@ -129,10 +171,7 @@ async function loadMatches() {
     const { data, error } = await db.from('user_matches').select('*');
     if (error) return list.innerHTML = 'Erro ao buscar matches.';
     
-    if (data.length === 0) {
-        list.innerHTML = 'Nenhum match por enquanto. O sistema avisará quando houver reciprocidade.';
-        return;
-    }
+    if (data.length === 0) return list.innerHTML = 'Nenhum match por enquanto. O sistema avisará quando houver reciprocidade.';
 
     list.innerHTML = data.map(m => `
         <div class="card match-card">
@@ -148,7 +187,7 @@ async function loadMatches() {
     `).join('');
 }
 
-// UTILIDADE: Contador do Menu de Matches
+// CONTADOR MATCH
 async function checkMatchCount() {
     if (!currentUser) return;
     const { data } = await db.from('user_matches').select('match_id');
@@ -161,7 +200,7 @@ async function checkMatchCount() {
     }
 }
 
-// BUSCA 3: Meu próprio Perfil
+// BUSCA 3: Perfil
 async function loadMyProfile() {
     const div = document.getElementById('my-profile-info');
     div.innerHTML = 'Carregando dados...';
