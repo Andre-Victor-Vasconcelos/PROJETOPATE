@@ -1,6 +1,6 @@
 // INSIRA SEUS DADOS DO SUPABASE AQUI (Entre as aspas)
-const SUPABASE_URL = 'COLE_AQUI_SUA_URL';
-const SUPABASE_ANON_KEY = 'COLE_AQUI_SUA_CHAVE_PUBLICABLE';
+const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
