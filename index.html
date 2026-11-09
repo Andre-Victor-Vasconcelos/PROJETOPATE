@@ -9,22 +9,50 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Script Oficial do Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- LÓGICA DE INTERFACE (Protegida contra falhas de rede) -->
+    <script>
+        // A função showView agora fica aqui em cima, blindada. 
+        // Ela existirá e funcionará independente da internet ou banco de dados.
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const tela = document.getElementById(viewId + '-view');
+            if (tela) tela.classList.add('active');
+            
+            // Rola suave para o topo
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Se as funções de busca existirem (banco online), ele as dispara
+            if (viewId === 'search' && typeof window.loadPublicProfiles === 'function') window.loadPublicProfiles();
+            if (viewId === 'matches' && typeof window.loadMatches === 'function') window.loadMatches();
+            if (viewId === 'profile' && typeof window.loadMyProfile === 'function') window.loadMyProfile();
+        }
+
+        // Função de saída genérica (protegida)
+        function logout() {
+            if (typeof window.performLogout === 'function') {
+                window.performLogout();
+            } else {
+                showView('home');
+            }
+        }
+    </script>
+
+    <!-- Script Oficial do Supabase (Trocado para UNPKG para evitar bloqueio de firewalls de Órgãos) -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <style>
         /* =========================================
            ESTILOS (CSS) - DESIGN PREMIUM E MODERNO
            ========================================= */
         :root {
-            --primary: #1a365d;       /* Azul Escuro (Confiança/Governo) */
-            --primary-light: #2b6cb0; /* Azul Médio */
+            --primary: #1a365d;       
+            --primary-light: #2b6cb0; 
             --primary-hover: #1e4e8c;
-            --bg-color: #f8fafc;      /* Fundo cinza/azulado bem claro */
+            --bg-color: #f8fafc;      
             --text-main: #334155;
             --text-muted: #64748b;
             --card-bg: #ffffff;
-            --success: #10b981;       /* Verde Esmeralda para os Matches */
+            --success: #10b981;       
             --border-color: #e2e8f0;
             --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -33,15 +61,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
         
-        /* Navegação */
         nav { 
             background: linear-gradient(135deg, var(--primary), var(--primary-light)); 
-            color: white; 
-            padding: 1rem 5%; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            color: white; padding: 1rem 5%; display: flex; justify-content: space-between; 
+            align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.15);
             position: sticky; top: 0; z-index: 100;
         }
         .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px;}
@@ -51,20 +74,17 @@
         #nav-links { list-style: none; display: flex; gap: 1.5rem; align-items: center; }
         #nav-links a { 
             color: white; text-decoration: none; font-weight: 500; font-size: 0.95rem; 
-            padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease;
+            padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease; cursor: pointer;
         }
         #nav-links a:hover { background-color: rgba(255,255,255,0.15); }
         #match-badge { color: #fde047; font-weight: bold; margin-left: 5px; }
 
-        /* Container Principal */
         main { max-width: 1100px; margin: 3rem auto; padding: 0 1.5rem; min-height: 70vh; }
         
-        /* Sistema de Views (Telas) */
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Hero Section (Início) */
         .hero { text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); }
         .hero h1 { font-size: 2.8rem; color: var(--primary); margin-bottom: 1rem; line-height: 1.2; letter-spacing: -1px; }
         .hero p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem; }
@@ -74,7 +94,6 @@
             text-align: left; max-width: 800px; margin: 0 auto 2rem auto; border-radius: 0 8px 8px 0;
         }
 
-        /* Botões */
         .btn-primary { 
             background-color: var(--primary-light); color: white; border: none; 
             padding: 0.8rem 1.8rem; border-radius: 8px; cursor: pointer; 
@@ -85,7 +104,6 @@
         .btn-link { background: none; border: none; color: var(--primary-light); cursor: pointer; font-size: 0.9rem; font-weight: 500; margin-top: 1rem; }
         .btn-link:hover { text-decoration: underline; color: var(--primary); }
 
-        /* Forms e Auth */
         .auth-container { display: flex; gap: 2rem; flex-wrap: wrap; }
         .auth-box { 
             flex: 1; min-width: 320px; background: var(--card-bg); 
@@ -104,7 +122,6 @@
         .form-row > select { flex: 1; }
         hr { border: none; border-top: 1px solid var(--border-color); margin: 0.5rem 0; }
 
-        /* Cards e Grid (Busca e Matches) */
         .section-header { margin-bottom: 2rem; text-align: center; }
         .section-header h2 { color: var(--primary); font-size: 2rem; margin-bottom: 0.5rem; }
         .section-header p { color: var(--text-muted); }
@@ -113,13 +130,11 @@
         .card { 
             background: var(--card-bg); border-radius: var(--radius); padding: 1.8rem; 
             box-shadow: var(--shadow); border: 1px solid var(--border-color);
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden;
         }
         .card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary-light); }
         
-        /* Card de Match (Especial) */
         .card.match-card::before { background: var(--success); }
         .match-badge-tag { 
             display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); 
@@ -137,21 +152,17 @@
             font-size: 0.8rem; font-weight: 600; margin-top: 1rem;
         }
         
-        /* Contatos liberados (Matches) */
         .contact-box { background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px dashed #cbd5e1; }
         .contact-box p { margin-bottom: 0.4rem; font-weight: 500; display: flex; align-items: center; gap: 8px;}
         .contact-box i { color: var(--primary); }
 
-        /* Visibilidade Baseada no Login */
         body:not(.logged-in) .logged-in-only { display: none !important; }
         body.logged-in .logged-out-only { display: none !important; }
 
-        /* Status de Carregamento */
         .loading-state { text-align: center; color: var(--text-muted); padding: 3rem; font-size: 1.1rem; }
         .loading-state i { font-size: 2rem; color: var(--primary-light); margin-bottom: 1rem; animation: spin 1s linear infinite; display: block;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Responsividade */
         @media (max-width: 768px) { 
             nav { flex-direction: column; gap: 1rem; padding: 1rem; }
             #nav-links { flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
@@ -165,14 +176,14 @@
     <nav id="navbar">
         <div class="logo"><i class="fas fa-exchange-alt"></i> Match da Permuta <span>ATE</span></div>
         <ul id="nav-links">
-            <li><a href="javascript:void(0)" onclick="showView('home')"><i class="fas fa-home"></i> Início</a></li>
-            <li><a href="javascript:void(0)" onclick="showView('search')"><i class="fas fa-search"></i> Buscar Perfis</a></li>
+            <li><a onclick="showView('home')"><i class="fas fa-home"></i> Início</a></li>
+            <li><a onclick="showView('search')"><i class="fas fa-search"></i> Buscar Perfis</a></li>
             
-            <li class="logged-in-only"><a href="javascript:void(0)" onclick="showView('matches')"><i class="fas fa-handshake"></i> Meus Matches <span id="match-badge"></span></a></li>
-            <li class="logged-in-only"><a href="javascript:void(0)" onclick="showView('profile')"><i class="fas fa-user"></i> Meu Perfil</a></li>
-            <li class="logged-in-only"><a href="javascript:void(0)" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+            <li class="logged-in-only"><a onclick="showView('matches')"><i class="fas fa-handshake"></i> Meus Matches <span id="match-badge"></span></a></li>
+            <li class="logged-in-only"><a onclick="showView('profile')"><i class="fas fa-user"></i> Meu Perfil</a></li>
+            <li class="logged-in-only"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
             
-            <li class="logged-out-only"><a href="javascript:void(0)" onclick="showView('auth')"><i class="fas fa-sign-in-alt"></i> Entrar / Cadastrar</a></li>
+            <li class="logged-out-only"><a onclick="showView('auth')"><i class="fas fa-sign-in-alt"></i> Entrar / Cadastrar</a></li>
         </ul>
     </nav>
 
@@ -204,7 +215,7 @@
                         <input type="email" id="login-email" placeholder="E-mail" required>
                         <input type="password" id="login-password" placeholder="Senha" required>
                         <button type="submit" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-                        <button type="button" class="btn-link" onclick="forgotPassword()">Esqueci minha senha</button>
+                        <button type="button" class="btn-link" onclick="window.forgotPassword()">Esqueci minha senha</button>
                     </form>
                 </div>
                 
@@ -285,185 +296,267 @@
         </section>
     </main>
 
+    <!-- LÓGICA DE DADOS (Supabase e Autenticação) -->
     <script>
-        
-        /* =========================================
-           LÓGICA JAVASCRIPT (SUPABASE & UI)
-           ========================================= */
-        
-        const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
-        
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        let currentUser = null;
-
-        // TROCA DE TELAS
-        function showView(viewId) {
-            // Esconde todas
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            // Mostra a desejada
-            const tela = document.getElementById(viewId + '-view');
-            if (tela) tela.classList.add('active');
+        // Verificação de Segurança (Impede o site de quebrar se a rede do governo bloquear o Supabase)
+        if (typeof supabase === 'undefined') {
+            console.warn("ALERTA: O script do banco de dados não carregou (Erro 404 de rede).");
+            alert("⚠️ AVISO DE REDE: O banco de dados foi bloqueado. Se você estiver usando o Wi-Fi ou computador de um Órgão Público, o firewall deles está bloqueando o acesso. Por favor, acesse usando o 4G do celular ou internet de casa para conseguir fazer login e buscas.");
+        } else {
             
-            // Carrega dados dinâmicos se necessário
-            if (viewId === 'search') loadPublicProfiles();
-            if (viewId === 'matches') loadMatches();
-            if (viewId === 'profile') loadMyProfile();
+            // CONEXÃO COM SEU BANCO DE DADOS
+            const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
             
-            // Rola para o topo suavemente
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            let currentUser = null;
 
-        // DETECTA SE ESTÁ LOGADO E TRATA RECUPERAÇÃO DE SENHA
-        db.auth.onAuthStateChange((event, session) => {
-            if (event === 'PASSWORD_RECOVERY') {
-                showView('reset-password');
-                return;
-            }
-
-            if (session) {
-                currentUser = session.user;
-                document.body.classList.add('logged-in'); 
-                
-                // Se estava na tela de login, manda pra busca automaticamente
-                const authView = document.getElementById('auth-view');
-                if (authView && authView.classList.contains('active')) {
-                    showView('search');
+            // DETECTA SE ESTÁ LOGADO E TRATA RECUPERAÇÃO DE SENHA
+            db.auth.onAuthStateChange((event, session) => {
+                if (event === 'PASSWORD_RECOVERY') {
+                    showView('reset-password');
+                    return;
                 }
-                checkMatchCount();
-            } else {
-                currentUser = null;
-                document.body.classList.remove('logged-in'); 
-                
-                // Se deslogou e não está na home ou reset, manda pra home
-                const activeView = document.querySelector('.view.active');
-                if (activeView && activeView.id !== 'home-view' && activeView.id !== 'reset-password-view') {
-                    showView('home');
-                }
-            }
-        });
 
-        // LOGIN
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault(); 
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            const btn = e.target.querySelector('button');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-            
-            try {
-                const { error } = await db.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                document.getElementById('login-form').reset();
-            } catch (error) {
-                alert('Erro no login: ' + (error.message.includes('Invalid login') ? 'E-mail ou senha incorretos.' : error.message));
-            } finally {
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
-            }
-        });
-
-        // ESQUECI A SENHA
-        async function forgotPassword() {
-            const email = document.getElementById('login-email').value;
-            if (!email) {
-                return alert("Por favor, digite seu e-mail no campo de Login e clique em 'Esqueci minha senha' novamente.");
-            }
-            try {
-                const { error } = await db.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + window.location.pathname,
-                });
-                if (error) throw error;
-                alert("Instruções de redefinição enviadas para o seu e-mail! Verifique sua caixa de entrada e spam.");
-            } catch (error) {
-                alert("Erro ao enviar e-mail: " + error.message);
-            }
-        }
-
-        // REDEFINIR SENHA (FORMULÁRIO)
-        const resetForm = document.getElementById('reset-password-form');
-        if (resetForm) {
-            resetForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const newPassword = document.getElementById('new-password').value;
-                const btn = e.target.querySelector('button');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
-
-                try {
-                    const { error } = await db.auth.updateUser({ password: newPassword });
-                    if (error) throw error;
-                    alert("Senha atualizada com sucesso!");
-                    showView('search');
-                } catch (error) {
-                    alert("Erro ao atualizar senha: " + error.message);
-                } finally {
-                    btn.innerHTML = 'Atualizar Senha';
+                if (session) {
+                    currentUser = session.user;
+                    document.body.classList.add('logged-in'); 
+                    
+                    const authView = document.getElementById('auth-view');
+                    if (authView && authView.classList.contains('active')) showView('search');
+                    
+                    checkMatchCount();
+                } else {
+                    currentUser = null;
+                    document.body.classList.remove('logged-in'); 
+                    
+                    const activeView = document.querySelector('.view.active');
+                    if (activeView && activeView.id !== 'home-view' && activeView.id !== 'reset-password-view') {
+                        showView('home');
+                    }
                 }
             });
-        }
 
-        // CADASTRO
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = e.target.querySelector('button');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
-
-            try {
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
+            // LOGIN
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault(); 
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const btn = e.target.querySelector('button');
                 
-                const { data: authData, error: authError } = await db.auth.signUp({ email, password });
-                if (authError) {
-                    if(authError.message.includes('rate limit')) throw new Error('Servidor ocupado. Aguarde alguns minutos ou use o 4G do celular.');
-                    throw authError;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+                
+                try {
+                    const { error } = await db.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    document.getElementById('login-form').reset();
+                } catch (error) {
+                    alert('Erro no login: ' + (error.message.includes('Invalid login') ? 'E-mail ou senha incorretos.' : error.message));
+                } finally {
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
                 }
+            });
+
+            // ESQUECI A SENHA
+            window.forgotPassword = async function() {
+                const email = document.getElementById('login-email').value;
+                if (!email) return alert("Por favor, digite seu e-mail no campo de Login e clique em 'Esqueci minha senha' novamente.");
                 
-                const userId = authData.user.id;
+                try {
+                    const { error } = await db.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + window.location.pathname,
+                    });
+                    if (error) throw error;
+                    alert("Instruções enviadas! Verifique sua caixa de entrada e spam.");
+                } catch (error) {
+                    alert("Erro ao enviar e-mail: " + error.message);
+                }
+            };
 
-                const { error: pubError } = await db.from('public_profiles').insert({
-                    id: userId,
-                    current_org: document.getElementById('reg-curr-org').value,
-                    current_state: document.getElementById('reg-curr-state').value,
-                    desired_state: document.getElementById('reg-des-state').value,
-                    desired_org: document.getElementById('reg-des-org').value,
-                    status: document.getElementById('reg-status').value
+            // REDEFINIR SENHA
+            const resetForm = document.getElementById('reset-password-form');
+            if (resetForm) {
+                resetForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const newPassword = document.getElementById('new-password').value;
+                    const btn = e.target.querySelector('button');
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+
+                    try {
+                        const { error } = await db.auth.updateUser({ password: newPassword });
+                        if (error) throw error;
+                        alert("Senha atualizada com sucesso!");
+                        showView('search');
+                    } catch (error) {
+                        alert("Erro ao atualizar senha: " + error.message);
+                    } finally {
+                        btn.innerHTML = 'Atualizar Senha';
+                    }
                 });
-                if (pubError) throw new Error('Falha ao salvar perfil público: ' + pubError.message);
-
-                const { error: privError } = await db.from('private_details').insert({
-                    id: userId,
-                    full_name: document.getElementById('reg-name').value,
-                    email: email,
-                    phone: document.getElementById('reg-phone').value
-                });
-                if (privError) throw new Error('Falha ao salvar contatos: ' + privError.message);
-
-                alert("Cadastro realizado com sucesso! Você já está conectado no sistema.");
-                document.getElementById('register-form').reset(); 
-            } catch (error) {
-                alert(error.message);
-            } finally {
-                btn.innerHTML = '<i class="fas fa-check"></i> Criar Conta e Publicar Perfil';
             }
-        });
 
-        // SAIR
-        async function logout() {
-            await db.auth.signOut();
-            showView('home');
+            // CADASTRO
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
+
+                try {
+                    const email = document.getElementById('reg-email').value;
+                    const password = document.getElementById('reg-password').value;
+                    
+                    const { data: authData, error: authError } = await db.auth.signUp({ email, password });
+                    if (authError) {
+                        if(authError.message.includes('rate limit')) throw new Error('Servidor ocupado. Aguarde alguns minutos.');
+                        throw authError;
+                    }
+                    
+                    const userId = authData.user.id;
+
+                    const { error: pubError } = await db.from('public_profiles').insert({
+                        id: userId,
+                        current_org: document.getElementById('reg-curr-org').value,
+                        current_state: document.getElementById('reg-curr-state').value,
+                        desired_state: document.getElementById('reg-des-state').value,
+                        desired_org: document.getElementById('reg-des-org').value,
+                        status: document.getElementById('reg-status').value
+                    });
+                    if (pubError) throw new Error('Falha no perfil público: ' + pubError.message);
+
+                    const { error: privError } = await db.from('private_details').insert({
+                        id: userId,
+                        full_name: document.getElementById('reg-name').value,
+                        email: email,
+                        phone: document.getElementById('reg-phone').value
+                    });
+                    if (privError) throw new Error('Falha nos contatos: ' + privError.message);
+
+                    alert("Cadastro realizado com sucesso! Você já está conectado no sistema.");
+                    document.getElementById('register-form').reset(); 
+                } catch (error) {
+                    alert(error.message);
+                } finally {
+                    btn.innerHTML = '<i class="fas fa-check"></i> Criar Conta e Publicar Perfil';
+                }
+            });
+
+            // SAIR (Conectado ao logout lá do topo)
+            window.performLogout = async function() {
+                await db.auth.signOut();
+                showView('home');
+                window.location.reload(); 
+            };
+
+            function getLoadingHTML() {
+                return `<div class="loading-state"><i class="fas fa-circle-notch"></i> Sincronizando dados...</div>`;
+            }
+
+            // BUSCA 1: PERFIS PÚBLICOS
+            window.loadPublicProfiles = async function() {
+                const list = document.getElementById('public-profiles-list');
+                list.innerHTML = getLoadingHTML();
+
+                try {
+                    let query = db.from('public_profiles').select('*');
+                    if (currentUser) query = query.neq('id', currentUser.id);
+
+                    const { data, error } = await query;
+                    if (error) throw error;
+                    
+                    if (data.length === 0) {
+                        list.innerHTML = '<div class="loading-state">Nenhum perfil cadastrado no momento. Seja o primeiro!</div>';
+                        return;
+                    }
+
+                    list.innerHTML = data.map(p => `
+                        <div class="card">
+                            <h3><i class="fas fa-user-secret"></i> Colega ATE #${p.id.substring(0, 5).toUpperCase()}</h3>
+                            <div class="card-info"><i class="fas fa-map-marker-alt"></i> <strong>Lotação Atual:</strong> ${p.current_org} / ${p.current_state}</div>
+                            <div class="card-info"><i class="fas fa-route"></i> <strong>Deseja ir para:</strong> ${p.desired_org || 'Qualquer Órgão'} / ${p.desired_state}</div>
+                            <div class="card-info"><i class="fas fa-info-circle"></i> <strong>Situação:</strong> <span style="text-transform: capitalize;">${p.status}</span></div>
+                            <span class="tag"><i class="fas fa-lock"></i> Contatos Ocultos</span>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    list.innerHTML = `<div class="loading-state" style="color: red;">Erro ao buscar perfis.</div>`;
+                }
+            };
+
+            // BUSCA 2: MATCHES
+            window.loadMatches = async function() {
+                const list = document.getElementById('matches-list');
+                list.innerHTML = getLoadingHTML();
+
+                try {
+                    const { data, error } = await db.from('user_matches').select('*');
+                    if (error) throw error;
+                    
+                    if (!data || data.length === 0) {
+                        list.innerHTML = '<div class="loading-state">Nenhum match por enquanto. Avisaremos quando houver reciprocidade!</div>';
+                        return;
+                    }
+
+                    list.innerHTML = data.map(m => `
+                        <div class="card match-card">
+                            <div class="match-badge-tag"><i class="fas fa-star"></i> MATCH CONFIRMADO</div>
+                            <h3><i class="fas fa-user-check"></i> ${m.full_name || 'Nome não encontrado'}</h3>
+                            <hr>
+                            <div class="card-info mt-2"><i class="fas fa-map-marker-alt"></i> <strong>Sai de:</strong> ${m.current_org} / ${m.current_state}</div>
+                            <div class="card-info"><i class="fas fa-route"></i> <strong>Vai para:</strong> ${m.desired_org || 'Qualquer'} / ${m.desired_state}</div>
+                            <div class="contact-box">
+                                <p><i class="fas fa-envelope"></i> ${m.email}</p>
+                                <p><i class="fab fa-whatsapp"></i> ${m.phone}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    list.innerHTML = `<div class="loading-state" style="color: red;">Erro ao buscar matches.</div>`;
+                }
+            };
+
+            // BADGE (Notificação)
+            async function checkMatchCount() {
+                if (!currentUser) return;
+                try {
+                    const { data, error } = await db.from('user_matches').select('match_id');
+                    if (error) return; 
+                    const badge = document.getElementById('match-badge');
+                    if (data && data.length > 0) badge.innerHTML = `<i class="fas fa-bell"></i> (${data.length})`;
+                    else badge.innerHTML = '';
+                } catch (err) {}
+            }
+
+            // BUSCA 3: MEU PERFIL
+            window.loadMyProfile = async function() {
+                const div = document.getElementById('my-profile-info');
+                div.innerHTML = getLoadingHTML();
+
+                try {
+                    const { data: pub, error: errPub } = await db.from('public_profiles').select('*').eq('id', currentUser.id).single();
+                    const { data: priv, error: errPriv } = await db.from('private_details').select('*').eq('id', currentUser.id).single();
+
+                    if (errPub || errPriv) throw new Error("Erro ao carregar");
+
+                    div.innerHTML = `
+                        <div class="card" style="border-top: 4px solid var(--primary);">
+                            <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;"><i class="fas fa-id-badge"></i> ${priv.full_name}</h3>
+                            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Estes são os dados que você forneceu ao sistema.</p>
+                            
+                            <div class="contact-box" style="margin-top: 0; margin-bottom: 1.5rem; background: #f1f5f9;">
+                                <p><i class="fas fa-envelope"></i> <strong>E-mail:</strong> ${priv.email}</p>
+                                <p><i class="fas fa-phone"></i> <strong>Telefone:</strong> ${priv.phone}</p>
+                            </div>
+                            
+                            <div class="card-info"><i class="fas fa-building"></i> <strong>Lotação Atual:</strong> ${pub.current_org} - ${pub.current_state}</div>
+                            <div class="card-info"><i class="fas fa-plane-arrival"></i> <strong>Desejo de Lotação:</strong> ${pub.desired_org || 'Qualquer'} - ${pub.desired_state}</div>
+                            <div class="card-info"><i class="fas fa-clipboard-check"></i> <strong>Situação Funcional:</strong> <span style="text-transform: capitalize;">${pub.status}</span></div>
+                        </div>
+                    `;
+                } catch (error) {
+                    div.innerHTML = `<div class="loading-state" style="color: red;">Não foi possível carregar seu perfil.</div>`;
+                }
+            };
         }
-
-        // GERADOR DE HTML DE LOADING
-        function getLoadingHTML() {
-            return `<div class="loading-state"><i class="fas fa-circle-notch"></i> Sincronizando dados com o servidor...</div>`;
-        }
-
-        // BUSCA 1: PERFIS PÚBLICOS (Anonimizados)
-        async function loadPublicProfiles() {
-            const list = document.getElementById('public-profiles-list');
-            list.innerHTML = getLoadingHTML();
-
-            try {
-                let query = db.from('public_profiles').select('*');
-                if (currentUser) query = quer
+    </script>
+</body>
+</html>
