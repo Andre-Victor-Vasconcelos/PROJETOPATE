@@ -135,7 +135,7 @@
 
         @media (max-width: 768px) { 
             nav { flex-direction: column; gap: 1rem; padding: 1rem; }
-            #nav-links { flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+            # { flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
             .hero h1 { font-size: 2rem; }
         }
     </style>
@@ -146,6 +146,13 @@
         <div class="logo"><i class="fas fa-exchange-alt"></i> Match da Permuta <span>ATE</span></div>
         <ul id="nav-links">
             <li><a href="javascript:void(0)" onclick="window.showView('home')"><i class="fas fa-home"></i> Início / Perfis</a></li>
+
+                <!-- NOVA LINHA ABAIXO -->
+    <li><a href="javascript:void(0)" onclick="window.goToProfiles()"><i class="fas fa-search"></i> Perfis Disponíveis para Permuta</a></li>
+    
+    <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.showView('matches')"><i class="fas fa-handshake"></i> Meus Matches <span id="match-badge"></span></a></li>
+    <!-- resto dos links continua igual... -->
+            
             <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.showView('matches')"><i class="fas fa-handshake"></i> Meus Matches <span id="match-badge"></span></a></li>
             <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.showView('profile')"><i class="fas fa-user"></i> Meu Perfil</a></li>
             <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.logout()"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
@@ -171,7 +178,8 @@
                 <button class="btn-primary logged-out-only" onclick="window.showView('auth')"><i class="fas fa-user-plus"></i> Criar Conta / Entrar para dar Match</button>
             </div>
 
-            <div class="section-header">
+            <div id="secao-perfis" class="section-header">
+
                 <h2>Perfis Disponíveis para Permuta</h2>
                 <p>Nesta área, as identidades ficam ocultas. Crie sua conta para cruzar interesses com a base de dados.</p>
             </div>
@@ -277,6 +285,14 @@
             if (viewId === 'matches' && window.loadMatches) window.loadMatches();
             if (viewId === 'profile' && window.loadMyProfile) window.loadMyProfile();
         };
+
+        window.goToProfiles = function() {
+    window.showView('home'); // Garante que está na tela inicial
+    setTimeout(() => {
+        const el = document.getElementById('secao-perfis');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+};
 
         window.logout = async function() {
             if (window.db) await window.db.auth.signOut();
