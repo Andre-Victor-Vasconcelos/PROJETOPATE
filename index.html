@@ -4,107 +4,465 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Match da Permuta - ATE</title>
+    
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Script Oficial do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        :root { --primary: #004d99; --accent: #28a745; --bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
-        nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; }
-        .nav-links { list-style: none; display: flex; gap: 20px; }
-        .nav-links a { color: white; text-decoration: none; cursor: pointer; }
-        .view { display: none; padding: 2rem; max-width: 800px; margin: auto; }
-        .view.active { display: block; }
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-        input, select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 4px; }
-        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { opacity: 0.9; }
-        .btn-register { background: var(--accent); }
-        .hidden { display: none !important; }
+        /* =========================================
+           ESTILOS (CSS) - DESIGN PREMIUM E MODERNO
+           ========================================= */
+        :root {
+            --primary: #1a365d;       /* Azul Escuro (Confiança/Governo) */
+            --primary-light: #2b6cb0; /* Azul Médio */
+            --primary-hover: #1e4e8c;
+            --bg-color: #f8fafc;      /* Fundo cinza/azulado bem claro */
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --success: #10b981;       /* Verde Esmeralda para os Matches */
+            --border-color: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+        
+        /* Navegação */
+        nav { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-light)); 
+            color: white; 
+            padding: 1rem 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px;}
+        .logo i { color: #60a5fa; }
+        .logo span { font-weight: 300; opacity: 0.9; }
+        
+        #nav-links { list-style: none; display: flex; gap: 1.5rem; align-items: center; }
+        #nav-links a { 
+            color: white; text-decoration: none; font-weight: 500; font-size: 0.95rem; 
+            padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease;
+        }
+        #nav-links a:hover { background-color: rgba(255,255,255,0.15); }
+        #match-badge { color: #fde047; font-weight: bold; margin-left: 5px; }
+
+        /* Container Principal */
+        main { max-width: 1100px; margin: 3rem auto; padding: 0 1.5rem; min-height: 70vh; }
+        
+        /* Sistema de Views (Telas) */
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Hero Section (Início) */
+        .hero { text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); }
+        .hero h1 { font-size: 2.8rem; color: var(--primary); margin-bottom: 1rem; line-height: 1.2; letter-spacing: -1px; }
+        .hero p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem; }
+        .disclaimer-box { 
+            background-color: #f1f5f9; border-left: 4px solid var(--primary-light); 
+            padding: 1.2rem; font-size: 0.95rem; color: var(--text-main); 
+            text-align: left; max-width: 800px; margin: 0 auto 2rem auto; border-radius: 0 8px 8px 0;
+        }
+
+        /* Botões */
+        .btn-primary { 
+            background-color: var(--primary-light); color: white; border: none; 
+            padding: 0.8rem 1.8rem; border-radius: 8px; cursor: pointer; 
+            font-size: 1rem; font-weight: 600; transition: all 0.2s; 
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3); }
+        .btn-link { background: none; border: none; color: var(--primary-light); cursor: pointer; font-size: 0.9rem; font-weight: 500; margin-top: 1rem; }
+        .btn-link:hover { text-decoration: underline; color: var(--primary); }
+
+        /* Forms e Auth */
+        .auth-container { display: flex; gap: 2rem; flex-wrap: wrap; }
+        .auth-box { 
+            flex: 1; min-width: 320px; background: var(--card-bg); 
+            padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); 
+            border: 1px solid var(--border-color);
+        }
+        .auth-box h2 { color: var(--primary); margin-bottom: 1.5rem; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .auth-box form { display: flex; flex-direction: column; gap: 1.2rem; }
+        
+        input, select { 
+            padding: 0.9rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px; 
+            font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none; background: #f8fafc;
+        }
+        input:focus, select:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.15); background: white; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row > select { flex: 1; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 0.5rem 0; }
+
+        /* Cards e Grid (Busca e Matches) */
+        .section-header { margin-bottom: 2rem; text-align: center; }
+        .section-header h2 { color: var(--primary); font-size: 2rem; margin-bottom: 0.5rem; }
+        .section-header p { color: var(--text-muted); }
+
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .card { 
+            background: var(--card-bg); border-radius: var(--radius); padding: 1.8rem; 
+            box-shadow: var(--shadow); border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary-light); }
+        
+        /* Card de Match (Especial) */
+        .card.match-card::before { background: var(--success); }
+        .match-badge-tag { 
+            display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); 
+            color: #047857; padding: 0.4rem 0.8rem; border-radius: 20px; 
+            font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .card h3 { color: var(--primary); margin-bottom: 1rem; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;}
+        .card-info { margin-bottom: 0.5rem; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;}
+        .card-info i { color: var(--primary-light); width: 16px; text-align: center;}
+        
+        .tag { 
+            display: inline-flex; align-items: center; gap: 5px; background: #f1f5f9; 
+            color: var(--text-muted); padding: 0.3rem 0.8rem; border-radius: 20px; 
+            font-size: 0.8rem; font-weight: 600; margin-top: 1rem;
+        }
+        
+        /* Contatos liberados (Matches) */
+        .contact-box { background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px dashed #cbd5e1; }
+        .contact-box p { margin-bottom: 0.4rem; font-weight: 500; display: flex; align-items: center; gap: 8px;}
+        .contact-box i { color: var(--primary); }
+
+        /* Visibilidade Baseada no Login */
+        body:not(.logged-in) .logged-in-only { display: none !important; }
+        body.logged-in .logged-out-only { display: none !important; }
+
+        /* Status de Carregamento */
+        .loading-state { text-align: center; color: var(--text-muted); padding: 3rem; font-size: 1.1rem; }
+        .loading-state i { font-size: 2rem; color: var(--primary-light); margin-bottom: 1rem; animation: spin 1s linear infinite; display: block;}
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Responsividade */
+        @media (max-width: 768px) { 
+            nav { flex-direction: column; gap: 1rem; padding: 1rem; }
+            #nav-links { flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+            .hero h1 { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
 
-<nav>
-    <div class="logo"><strong>Match da Permuta</strong> ATE</div>
-    <ul class="nav-links">
-        <li><a onclick="showView('home')">Início</a></li>
-        <li class="logged-in"><a onclick="showView('search')">Busca</a></li>
-        <li class="logged-in"><a onclick="showView('matches')">Meus Matches</a></li>
-        <li class="logged-in"><a onclick="logout()">Sair</a></li>
-        <li class="logged-out"><a onclick="showView('auth')">Entrar/Cadastro</a></li>
-    </ul>
-</nav>
+    <!-- NAVEGAÇÃO -->
+    <nav id="navbar">
+        <div class="logo"><i class="fas fa-exchange-alt"></i> Match da Permuta <span>ATE</span></div>
+        <ul id="nav-links">
+            <li><a href="javascript:void(0)" onclick="showView('home')"><i class="fas fa-home"></i> Início</a></li>
+            <li><a href="javascript:void(0)" onclick="showView('search')"><i class="fas fa-search"></i> Buscar Perfis</a></li>
+            
+            <li class="logged-in-only"><a href="javascript:void(0)" onclick="showView('matches')"><i class="fas fa-handshake"></i> Meus Matches <span id="match-badge"></span></a></li>
+            <li class="logged-in-only"><a href="javascript:void(0)" onclick="showView('profile')"><i class="fas fa-user"></i> Meu Perfil</a></li>
+            <li class="logged-in-only"><a href="javascript:void(0)" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+            
+            <li class="logged-out-only"><a href="javascript:void(0)" onclick="showView('auth')"><i class="fas fa-sign-in-alt"></i> Entrar / Cadastrar</a></li>
+        </ul>
+    </nav>
 
-<main id="app">
-    <section id="home-view" class="view active">
-        <h1>Bem-vindo ao Match da Permuta ATE</h1>
-        <p>A ferramenta para encontrar sua permuta conforme a Portaria DICAT/SE/MGI nº 4.443/2026.</p>
-    </section>
+    <main>
+        <!-- TELA: INÍCIO -->
+        <section id="home-view" class="view active">
+            <div class="hero">
+                <h1>Sua próxima lotação pode estar a um match de distância.</h1>
+                <p>Plataforma exclusiva e segura para servidores da Carreira de Analista Técnico do Poder Executivo Federal (ATE).</p>
+                <div class="disclaimer-box">
+                    <i class="fas fa-info-circle" style="color: var(--primary-light); margin-right: 5px;"></i>
+                    <strong>Aviso Institucional:</strong> O match representa apenas compatibilidade de interesses (dupla concordância) e não garante a autorização administrativa da permuta, observando sempre os critérios da Portaria DICAT/SE/MGI nº 4.443/2026.
+                </div>
+                <button class="btn-primary logged-out-only" onclick="showView('auth')"><i class="fas fa-user-plus"></i> Criar Conta / Entrar</button>
+                <button class="btn-primary logged-in-only" onclick="showView('search')"><i class="fas fa-search"></i> Explorar Perfis Disponíveis</button>
+            </div>
+        </section>
 
-    <section id="auth-view" class="view">
-        <div class="card">
-            <h2>Login</h2>
-            <form id="login-form">
-                <input type="email" id="email" placeholder="E-mail" required>
-                <input type="password" id="password" placeholder="Senha" required>
-                <button type="submit">Entrar</button>
-            </form>
-            <hr>
-            <h2 id="reg-title">Ou Criar Cadastro</h2>
-            <form id="register-form">
-                <input type="text" id="reg-name" placeholder="Nome Completo" required>
-                <input type="text" id="reg-phone" placeholder="WhatsApp" required>
-                <input type="text" id="reg-curr-org" placeholder="Órgão Atual" required>
-                <select id="reg-curr-state"><option value="DF">DF</option><option value="ES">ES</option><option value="SP">SP</option></select>
-                <select id="reg-des-state"><option value="DF">DF</option><option value="ES">ES</option><option value="SP">SP</option></select>
-                <button type="submit" class="btn-register">Cadastrar</button>
-            </form>
-        </div>
-    </section>
+        <!-- TELA: LOGIN E CADASTRO -->
+        <section id="auth-view" class="view">
+            <div class="section-header">
+                <h2>Acesse a Plataforma</h2>
+                <p>Mantenha seus dados seguros. Seus contatos só serão revelados quando houver um Match.</p>
+            </div>
+            <div class="auth-container">
+                <div class="auth-box">
+                    <h2><i class="fas fa-lock"></i> Já tenho conta</h2>
+                    <form id="login-form">
+                        <input type="email" id="login-email" placeholder="E-mail" required>
+                        <input type="password" id="login-password" placeholder="Senha" required>
+                        <button type="submit" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                        <button type="button" class="btn-link" onclick="forgotPassword()">Esqueci minha senha</button>
+                    </form>
+                </div>
+                
+                <div class="auth-box">
+                    <h2><i class="fas fa-id-card"></i> Criar meu Perfil ATE</h2>
+                    <form id="register-form">
+                        <input type="email" id="reg-email" placeholder="E-mail (Seu melhor e-mail)" required>
+                        <input type="password" id="reg-password" placeholder="Crie uma Senha Forte" required>
+                        <hr>
+                        <input type="text" id="reg-name" placeholder="Nome Completo (Apenas visível no Match)" required>
+                        <input type="text" id="reg-phone" placeholder="Telefone/WhatsApp (Apenas visível no Match)" required>
+                        <input type="text" id="reg-curr-org" placeholder="Órgão Atual (Ex: MGI)" required>
+                        
+                        <div class="form-row">
+                            <select id="reg-curr-state" required>
+                                <option value="" disabled selected>Estado Atual</option>
+                                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                            </select>
+                            <select id="reg-des-state" required>
+                                <option value="" disabled selected>Estado Desejado</option>
+                                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                            </select>
+                        </div>
+                        
+                        <input type="text" id="reg-des-org" placeholder="Órgão Desejado (Deixe em branco se for Qualquer)">
+                        
+                        <select id="reg-status" required>
+                            <option value="" disabled selected>Situação Funcional</option>
+                            <option value="estável">Estável</option>
+                            <option value="estágio probatório">Estágio Probatório</option>
+                        </select>
+                        
+                        <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Criar Conta e Publicar Perfil</button>
+                    </form>
+                </div>
+            </div>
+        </section>
 
-    <section id="search-view" class="view"><h2>Perfis Disponíveis</h2><div id="profiles"></div></section>
-    <section id="matches-view" class="view"><h2>Matches Confirmados</h2><div id="matches"></div></section>
-</main>
+        <!-- TELA: REDEFINIR SENHA -->
+        <section id="reset-password-view" class="view">
+            <div class="auth-container">
+                <div class="auth-box" style="margin: 0 auto; max-width: 450px;">
+                    <h2><i class="fas fa-key"></i> Criar Nova Senha</h2>
+                    <p style="margin-bottom: 1rem; color: var(--text-muted);">Digite sua nova senha abaixo para recuperar seu acesso.</p>
+                    <form id="reset-password-form">
+                        <input type="password" id="new-password" placeholder="Digite a nova senha" required>
+                        <button type="submit" class="btn-primary">Atualizar Senha</button>
+                    </form>
+                </div>
+            </div>
+        </section>
 
-<script>
-    const db = window.supabase.createClient('https://wspghpjjtqvlcvlskbbp.supabase.co', 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2');
+        <!-- TELA: BUSCA DE PERFIS PÚBLICOS -->
+        <section id="search-view" class="view">
+            <div class="section-header">
+                <h2>Perfis Disponíveis</h2>
+                <p>Nesta área pública, identidades e contatos ficam ocultos. Apenas o desejo de movimentação é exibido.</p>
+            </div>
+            <div id="public-profiles-list" class="card-grid"></div>
+        </section>
 
-    window.showView = (id) => {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id + '-view').classList.add('active');
-    };
+        <!-- TELA: MEUS MATCHES -->
+        <section id="matches-view" class="view">
+            <div class="section-header">
+                <h2>Meus Matches</h2>
+                <p>Parabéns! Seus interesses bateram de forma recíproca com estes colegas. Os contatos foram liberados.</p>
+            </div>
+            <div id="matches-list" class="card-grid"></div>
+        </section>
 
-    window.logout = async () => { await db.auth.signOut(); location.reload(); };
+        <!-- TELA: MEU PERFIL -->
+        <section id="profile-view" class="view">
+            <div class="section-header">
+                <h2>Meu Perfil</h2>
+                <p>Estes são os dados que você registrou no sistema.</p>
+            </div>
+            <div id="my-profile-info" style="max-width: 600px; margin: 0 auto;"></div>
+        </section>
+    </main>
 
-    // Cadastro
-    document.getElementById('register-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        const { data, error } = await db.auth.signUp({ email, pass });
-        if(error) return alert(error.message);
+    <script>
+        /* =========================================
+           LÓGICA JAVASCRIPT (SUPABASE & UI)
+           ========================================= */
         
-        await db.from('public_profiles').insert({
-            id: data.user.id,
-            current_org: document.getElementById('reg-curr-org').value,
-            current_state: document.getElementById('reg-curr-state').value,
-            desired_state: document.getElementById('reg-des-state').value,
-            status: 'estável'
+        const SUPABASE_URL = 'https://wspghpjjtqvlcvlskbbp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_vcmvKSxkBg8tP_VBukgE2g_-BsIJnW2';
+        
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+
+        // TROCA DE TELAS
+        function showView(viewId) {
+            // Esconde todas
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            // Mostra a desejada
+            const tela = document.getElementById(viewId + '-view');
+            if (tela) tela.classList.add('active');
+            
+            // Carrega dados dinâmicos se necessário
+            if (viewId === 'search') loadPublicProfiles();
+            if (viewId === 'matches') loadMatches();
+            if (viewId === 'profile') loadMyProfile();
+            
+            // Rola para o topo suavemente
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // DETECTA SE ESTÁ LOGADO E TRATA RECUPERAÇÃO DE SENHA
+        db.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                showView('reset-password');
+                return;
+            }
+
+            if (session) {
+                currentUser = session.user;
+                document.body.classList.add('logged-in'); 
+                
+                // Se estava na tela de login, manda pra busca automaticamente
+                const authView = document.getElementById('auth-view');
+                if (authView && authView.classList.contains('active')) {
+                    showView('search');
+                }
+                checkMatchCount();
+            } else {
+                currentUser = null;
+                document.body.classList.remove('logged-in'); 
+                
+                // Se deslogou e não está na home ou reset, manda pra home
+                const activeView = document.querySelector('.view.active');
+                if (activeView && activeView.id !== 'home-view' && activeView.id !== 'reset-password-view') {
+                    showView('home');
+                }
+            }
         });
-        alert('Cadastro realizado! Faça login.');
-    });
 
-    // Login
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const { error } = await db.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
-        if(error) alert(error.message); else location.reload();
-    });
+        // LOGIN
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+            
+            try {
+                const { error } = await db.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                document.getElementById('login-form').reset();
+            } catch (error) {
+                alert('Erro no login: ' + (error.message.includes('Invalid login') ? 'E-mail ou senha incorretos.' : error.message));
+            } finally {
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+            }
+        });
 
-    // Controle de Visibilidade
-    db.auth.onAuthStateChange((event, session) => {
-        document.querySelectorAll('.logged-in').forEach(el => el.style.display = session ? 'block' : 'none');
-        document.querySelectorAll('.logged-out').forEach(el => el.style.display = session ? 'none' : 'block');
-    });
-</script>
-</body>
-</html>
+        // ESQUECI A SENHA
+        async function forgotPassword() {
+            const email = document.getElementById('login-email').value;
+            if (!email) {
+                return alert("Por favor, digite seu e-mail no campo de Login e clique em 'Esqueci minha senha' novamente.");
+            }
+            try {
+                const { error } = await db.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + window.location.pathname,
+                });
+                if (error) throw error;
+                alert("Instruções de redefinição enviadas para o seu e-mail! Verifique sua caixa de entrada e spam.");
+            } catch (error) {
+                alert("Erro ao enviar e-mail: " + error.message);
+            }
+        }
+
+        // REDEFINIR SENHA (FORMULÁRIO)
+        const resetForm = document.getElementById('reset-password-form');
+        if (resetForm) {
+            resetForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newPassword = document.getElementById('new-password').value;
+                const btn = e.target.querySelector('button');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+
+                try {
+                    const { error } = await db.auth.updateUser({ password: newPassword });
+                    if (error) throw error;
+                    alert("Senha atualizada com sucesso!");
+                    showView('search');
+                } catch (error) {
+                    alert("Erro ao atualizar senha: " + error.message);
+                } finally {
+                    btn.innerHTML = 'Atualizar Senha';
+                }
+            });
+        }
+
+        // CADASTRO
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
+
+            try {
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                
+                const { data: authData, error: authError } = await db.auth.signUp({ email, password });
+                if (authError) {
+                    if(authError.message.includes('rate limit')) throw new Error('Servidor ocupado. Aguarde alguns minutos ou use o 4G do celular.');
+                    throw authError;
+                }
+                
+                const userId = authData.user.id;
+
+                const { error: pubError } = await db.from('public_profiles').insert({
+                    id: userId,
+                    current_org: document.getElementById('reg-curr-org').value,
+                    current_state: document.getElementById('reg-curr-state').value,
+                    desired_state: document.getElementById('reg-des-state').value,
+                    desired_org: document.getElementById('reg-des-org').value,
+                    status: document.getElementById('reg-status').value
+                });
+                if (pubError) throw new Error('Falha ao salvar perfil público: ' + pubError.message);
+
+                const { error: privError } = await db.from('private_details').insert({
+                    id: userId,
+                    full_name: document.getElementById('reg-name').value,
+                    email: email,
+                    phone: document.getElementById('reg-phone').value
+                });
+                if (privError) throw new Error('Falha ao salvar contatos: ' + privError.message);
+
+                alert("Cadastro realizado com sucesso! Você já está conectado no sistema.");
+                document.getElementById('register-form').reset(); 
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-check"></i> Criar Conta e Publicar Perfil';
+            }
+        });
+
+        // SAIR
+        async function logout() {
+            await db.auth.signOut();
+            showView('home');
+        }
+
+        // GERADOR DE HTML DE LOADING
+        function getLoadingHTML() {
+            return `<div class="loading-state"><i class="fas fa-circle-notch"></i> Sincronizando dados com o servidor...</div>`;
+        }
+
+        // BUSCA 1: PERFIS PÚBLICOS (Anonimizados)
+        async function loadPublicProfiles() {
+            const list = document.getElementById('public-profiles-list');
+            list.innerHTML = getLoadingHTML();
+
+            try {
+                let query = db.from('public_profiles').select('*');
+                if (currentUser) query = quer
