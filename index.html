@@ -5,17 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Match da Permuta - ATE</title>
     
-    <!-- Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Supabase Oficial (VERSÃO FIXADA E ESTÁVEL PARA EVITAR ERRO 404) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     
     <style>
-        /* =========================================
-           ESTILOS (CSS) - DESIGN PREMIUM
-           ========================================= */
         :root {
             --primary: #1a365d;       
             --primary-light: #2b6cb0; 
@@ -57,14 +52,18 @@
         .view.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .hero { text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); }
-        .hero h1 { font-size: 2.8rem; color: var(--primary); margin-bottom: 1rem; line-height: 1.2; letter-spacing: -1px; }
-        .hero p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem; }
-        .disclaimer-box { 
-            background-color: #f1f5f9; border-left: 4px solid var(--primary-light); 
-            padding: 1.2rem; font-size: 0.95rem; color: var(--text-main); 
-            text-align: left; max-width: 800px; margin: 0 auto 2rem auto; border-radius: 0 8px 8px 0;
+        .hero { text-align: center; padding: 3rem 2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;}
+        .hero h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; line-height: 1.2; letter-spacing: -1px; }
+        .hero p { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+        
+        .info-box {
+            background-color: #f8fafc; border: 1px solid #e2e8f0;
+            padding: 1.5rem; font-size: 0.95rem; color: var(--text-main); 
+            text-align: left; max-width: 900px; margin: 0 auto 2rem auto; border-radius: 8px;
         }
+        .info-box p { margin-bottom: 0.8rem; font-size: 0.95rem; }
+        .info-box p:last-child { margin-bottom: 0; }
+        .privacy-highlight { color: #047857; font-weight: 600; background: #ecfdf5; padding: 0.8rem; border-radius: 6px; display: flex; gap: 10px; align-items: center;}
 
         .btn-primary { 
             background-color: var(--primary-light); color: white; border: none; 
@@ -131,7 +130,7 @@
         body:not(.logged-in) .logged-in-only { display: none !important; }
         body.logged-in .logged-out-only { display: none !important; }
 
-        .loading-state { text-align: center; color: var(--text-muted); padding: 3rem; font-size: 1.1rem; }
+        .loading-state { text-align: center; color: var(--text-muted); padding: 3rem; font-size: 1.1rem; grid-column: 1 / -1;}
         .loading-state i { font-size: 2rem; color: var(--primary-light); margin-bottom: 1rem; display: block;}
 
         @media (max-width: 768px) { 
@@ -143,35 +142,42 @@
 </head>
 <body>
 
-    <!-- NAVEGAÇÃO -->
     <nav id="navbar">
         <div class="logo"><i class="fas fa-exchange-alt"></i> Match da Permuta <span>ATE</span></div>
         <ul id="nav-links">
-            <!-- O href="javascript:void(0)" foi restaurado para garantir que os toques funcionem no celular -->
-            <li><a href="javascript:void(0)" onclick="window.showView('home')"><i class="fas fa-home"></i> Início</a></li>
-            <li><a href="javascript:void(0)" onclick="window.showView('search')"><i class="fas fa-search"></i> Buscar Perfis</a></li>
-            
+            <li><a href="javascript:void(0)" onclick="window.showView('home')"><i class="fas fa-home"></i> Início / Perfis</a></li>
             <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.showView('matches')"><i class="fas fa-handshake"></i> Meus Matches <span id="match-badge"></span></a></li>
             <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.showView('profile')"><i class="fas fa-user"></i> Meu Perfil</a></li>
             <li class="logged-in-only"><a href="javascript:void(0)" onclick="window.logout()"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
-            
             <li class="logged-out-only"><a href="javascript:void(0)" onclick="window.showView('auth')"><i class="fas fa-sign-in-alt"></i> Entrar / Cadastrar</a></li>
         </ul>
     </nav>
 
     <main>
-        <!-- TELA: INÍCIO -->
+        <!-- TELA: INÍCIO E PERFIS -->
         <section id="home-view" class="view active">
             <div class="hero">
                 <h1>Sua próxima lotação pode estar a um match de distância.</h1>
-                <p>Plataforma exclusiva e segura para servidores da Carreira de Analista Técnico do Poder Executivo Federal (ATE).</p>
-                <div class="disclaimer-box">
-                    <i class="fas fa-info-circle" style="color: var(--primary-light); margin-right: 5px;"></i>
-                    <strong>Aviso Institucional:</strong> O match representa apenas compatibilidade de interesses (dupla concordância) e não garante a autorização administrativa da permuta, observando sempre os critérios da Portaria DICAT/SE/MGI nº 4.443/2026.
+                
+                <div class="info-box">
+                    <p><i class="fas fa-info-circle" style="color: var(--primary-light); margin-right: 5px;"></i> <strong>Sobre este sistema:</strong> Este é um projeto independente, sem fins lucrativos e sem qualquer vinculação oficial ao MGI ou ao Governo Federal. Foi criado por um Analista Técnico do Executivo (que optou por se manter anônimo) com o objetivo exclusivo de ajudar a si mesmo e aos colegas da carreira a encontrarem permutas.</p>
+                    <p><i class="fas fa-balance-scale" style="color: var(--primary-light); margin-right: 5px;"></i> <strong>Aviso Legal:</strong> O match na plataforma representa apenas compatibilidade de interesses (dupla concordância) e não garante a autorização administrativa da permuta. Deve-se observar sempre os critérios da Portaria DICAT/SE/MGI nº 4.443/2026.</p>
+                    <div class="privacy-highlight">
+                        <i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i>
+                        <span><strong>Privacidade Garantida:</strong> Seu Nome, E-mail e WhatsApp ficam 100% ocultos nesta área pública. Eles só serão revelados na aba logada (Meus Matches) exclusivamente para os colegas com quem você der "Match".</span>
+                    </div>
                 </div>
-                <button class="btn-primary logged-out-only" onclick="window.showView('auth')"><i class="fas fa-user-plus"></i> Criar Conta / Entrar</button>
-                <button class="btn-primary logged-in-only" onclick="window.showView('search')"><i class="fas fa-search"></i> Explorar Perfis Disponíveis</button>
+
+                <button class="btn-primary logged-out-only" onclick="window.showView('auth')"><i class="fas fa-user-plus"></i> Criar Conta / Entrar para dar Match</button>
             </div>
+
+            <div class="section-header">
+                <h2>Perfis Disponíveis para Permuta</h2>
+                <p>Nesta área, as identidades ficam ocultas. Crie sua conta para cruzar interesses com a base de dados.</p>
+            </div>
+            
+            <!-- LISTA DE PERFIS APARECE AQUI NA HOME -->
+            <div id="public-profiles-list" class="card-grid"></div>
         </section>
 
         <!-- TELA: LOGIN E CADASTRO -->
@@ -240,15 +246,6 @@
             </div>
         </section>
 
-        <!-- TELA: BUSCA DE PERFIS PÚBLICOS -->
-        <section id="search-view" class="view">
-            <div class="section-header">
-                <h2>Perfis Disponíveis</h2>
-                <p>Nesta área, identidades ficam ocultas. Apenas os interesses de movimentação são exibidos.</p>
-            </div>
-            <div id="public-profiles-list" class="card-grid"></div>
-        </section>
-
         <!-- TELA: MEUS MATCHES -->
         <section id="matches-view" class="view">
             <div class="section-header">
@@ -268,27 +265,21 @@
         </section>
     </main>
 
-    <!-- LÓGICA DE DADOS 100% BLINDADA E FUNCIONAL -->
     <script>
-        // 1. REGISTRAMOS AS FUNÇÕES GLOBALMENTE (Isso impede que elas deem o erro "is not defined")
         window.showView = function(viewId) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             const tela = document.getElementById(viewId + '-view');
-            if (tela) {
-                tela.classList.add('active');
-            }
+            if (tela) { tela.classList.add('active'); }
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Executa o carregamento se as funções do Supabase já estiverem prontas
-            if (viewId === 'search' && window.loadPublicProfiles) window.loadPublicProfiles();
+            // Como os perfis agora estão na home, disparamos a busca na view "home"
+            if (viewId === 'home' && window.loadPublicProfiles) window.loadPublicProfiles();
             if (viewId === 'matches' && window.loadMatches) window.loadMatches();
             if (viewId === 'profile' && window.loadMyProfile) window.loadMyProfile();
         };
 
         window.logout = async function() {
-            if (window.db) {
-                await window.db.auth.signOut();
-            }
+            if (window.db) await window.db.auth.signOut();
             window.showView('home');
             window.location.reload(); 
         };
@@ -296,20 +287,20 @@
         window.forgotPassword = async function() {
             if (!window.db) return alert("Sistema carregando, aguarde...");
             const email = document.getElementById('login-email').value;
-            if (!email) return alert("Por favor, digite seu e-mail no campo de Login e clique em 'Esqueci minha senha' novamente.");
+            if (!email) return alert("Por favor, digite seu e-mail no campo de Login e clique em 'Esqueci minha senha'.");
             
             try {
                 const { error } = await window.db.auth.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + window.location.pathname,
                 });
-                if (error) throw error;
+                if (error && error.message.includes('rate limit')) throw new Error("Limite de e-mails do sistema atingido. Aguarde alguns minutos e tente novamente.");
+                else if (error) throw error;
                 alert("Instruções enviadas! Verifique sua caixa de entrada e pasta de spam.");
             } catch (error) {
-                alert("Erro ao enviar e-mail: " + error.message);
+                alert("ERRO: " + error.message);
             }
         };
 
-        // 2. INICIALIZAÇÃO DO BANCO DE DADOS PROTEGIDA CONTRA QUEBRAS
         try {
             if (typeof supabase === 'undefined') {
                 console.error("ALERTA: Supabase falhou ao carregar da CDN externa.");
@@ -320,26 +311,21 @@
                 window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 let currentUser = null;
 
-                // FUNÇÃO: Escuta as mudanças de login/logout/recuperação de senha
                 window.db.auth.onAuthStateChange((event, session) => {
                     if (event === 'PASSWORD_RECOVERY') {
                         window.showView('reset-password');
                         return;
                     }
-
                     if (session) {
                         currentUser = session.user;
                         document.body.classList.add('logged-in'); 
-                        
                         const authView = document.getElementById('auth-view');
-                        if (authView && authView.classList.contains('active')) {
-                            window.showView('search');
-                        }
+                        // Se fez login com sucesso, joga de volta pra home onde estão os perfis
+                        if (authView && authView.classList.contains('active')) window.showView('home');
                         checkMatchCount();
                     } else {
                         currentUser = null;
                         document.body.classList.remove('logged-in'); 
-                        
                         const activeView = document.querySelector('.view.active');
                         if (activeView && activeView.id !== 'home-view' && activeView.id !== 'reset-password-view') {
                             window.showView('home');
@@ -347,7 +333,6 @@
                     }
                 });
 
-                // FUNÇÃO: Contagem da notificação de Match (Sininho)
                 async function checkMatchCount() {
                     if (!currentUser) return;
                     try {
@@ -363,11 +348,11 @@
                     return `<div class="loading-state"><i class="fas fa-circle-notch fa-spin"></i> ${texto}</div>`;
                 }
 
-                // BUSCA 1: PERFIS PÚBLICOS
                 window.loadPublicProfiles = async function() {
                     const list = document.getElementById('public-profiles-list');
-                    list.innerHTML = getLoadingHTML("Buscando perfis...");
-
+                    if(list.innerHTML.includes('Colega ATE')) return; // Evita recarregar se já tem dados
+                    
+                    list.innerHTML = getLoadingHTML("Carregando base de perfis...");
                     try {
                         let query = window.db.from('public_profiles').select('*');
                         if (currentUser) query = query.neq('id', currentUser.id);
@@ -376,10 +361,9 @@
                         if (error) throw error;
                         
                         if (data.length === 0) {
-                            list.innerHTML = '<div class="loading-state">Nenhum perfil cadastrado no momento. Seja o primeiro!</div>';
+                            list.innerHTML = '<div class="loading-state">Nenhum perfil cadastrado no momento. Crie sua conta e seja o primeiro!</div>';
                             return;
                         }
-
                         list.innerHTML = data.map(p => `
                             <div class="card">
                                 <h3><i class="fas fa-user-secret"></i> Colega ATE #${p.id.substring(0, 5).toUpperCase()}</h3>
@@ -390,24 +374,20 @@
                             </div>
                         `).join('');
                     } catch (error) {
-                        list.innerHTML = `<div class="loading-state" style="color: red;">Erro ao buscar perfis públicos.</div>`;
+                        list.innerHTML = `<div class="loading-state" style="color: red;">Erro ao buscar perfis na base de dados.</div>`;
                     }
                 };
 
-                // BUSCA 2: MATCHES (Dados Abertos)
                 window.loadMatches = async function() {
                     const list = document.getElementById('matches-list');
                     list.innerHTML = getLoadingHTML("Processando sistema de match...");
-
                     try {
                         const { data, error } = await window.db.from('user_matches').select('*');
                         if (error) throw error;
-                        
                         if (!data || data.length === 0) {
-                            list.innerHTML = '<div class="loading-state">Nenhum match por enquanto. O sistema avisará quando houver compatibilidade recíproca!</div>';
+                            list.innerHTML = '<div class="loading-state">Nenhum match por enquanto. O sistema cruza os dados automaticamente e avisará quando houver compatibilidade recíproca!</div>';
                             return;
                         }
-
                         list.innerHTML = data.map(m => `
                             <div class="card match-card">
                                 <div class="match-badge-tag"><i class="fas fa-star"></i> MATCH CONFIRMADO</div>
@@ -426,27 +406,23 @@
                     }
                 };
 
-                // BUSCA 3: PERFIL DO USUÁRIO
                 window.loadMyProfile = async function() {
                     const div = document.getElementById('my-profile-info');
                     div.innerHTML = getLoadingHTML("Carregando seus dados...");
-
                     try {
                         const { data: pub, error: errPub } = await window.db.from('public_profiles').select('*').eq('id', currentUser.id).single();
                         const { data: priv, error: errPriv } = await window.db.from('private_details').select('*').eq('id', currentUser.id).single();
-
+                        
                         if (errPub || errPriv) throw new Error("Erro ao carregar");
-
+                        
                         div.innerHTML = `
                             <div class="card" style="border-top: 4px solid var(--primary);">
                                 <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;"><i class="fas fa-id-badge"></i> ${priv.full_name}</h3>
                                 <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Informações ativas no sistema.</p>
-                                
                                 <div class="contact-box" style="margin-top: 0; margin-bottom: 1.5rem; background: #f1f5f9;">
                                     <p><i class="fas fa-envelope"></i> <strong>E-mail:</strong> ${priv.email}</p>
                                     <p><i class="fas fa-phone"></i> <strong>Telefone:</strong> ${priv.phone}</p>
                                 </div>
-                                
                                 <div class="card-info"><i class="fas fa-building"></i> <strong>Atual:</strong> ${pub.current_org} - ${pub.current_state}</div>
                                 <div class="card-info"><i class="fas fa-plane-arrival"></i> <strong>Desejo:</strong> ${pub.desired_org || 'Qualquer'} - ${pub.desired_state}</div>
                                 <div class="card-info"><i class="fas fa-clipboard-check"></i> <strong>Status:</strong> <span style="text-transform: capitalize;">${pub.status}</span></div>
@@ -457,7 +433,6 @@
                     }
                 };
 
-                // LISTENERS DOS FORMULÁRIOS
                 const loginForm = document.getElementById('login-form');
                 if (loginForm) {
                     loginForm.addEventListener('submit', async (e) => {
@@ -465,15 +440,17 @@
                         const email = document.getElementById('login-email').value;
                         const password = document.getElementById('login-password').value;
                         const btn = e.target.querySelector('button');
-                        
                         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
                         
                         try {
                             const { error } = await window.db.auth.signInWithPassword({ email, password });
-                            if (error) throw error;
+                            if (error) {
+                                if (error.message.includes('Invalid login')) throw new Error("E-mail ou senha incorretos.");
+                                throw error;
+                            }
                             loginForm.reset();
                         } catch (error) {
-                            alert('Erro no login: ' + (error.message.includes('Invalid login') ? 'E-mail ou senha incorretos.' : error.message));
+                            alert('ERRO: ' + error.message);
                         } finally {
                             btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
                         }
@@ -492,10 +469,7 @@
                             const password = document.getElementById('reg-password').value;
                             
                             const { data: authData, error: authError } = await window.db.auth.signUp({ email, password });
-                            if (authError) {
-                                if(authError.message.includes('rate limit')) throw new Error('Servidor ocupado. Aguarde alguns minutos.');
-                                throw authError;
-                            }
+                            if (authError) throw authError;
                             
                             const userId = authData.user.id;
 
@@ -507,7 +481,7 @@
                                 desired_org: document.getElementById('reg-des-org').value || 'Qualquer',
                                 status: document.getElementById('reg-status').value
                             });
-                            if (pubError) throw new Error('Falha no perfil público: ' + pubError.message);
+                            if (pubError) throw pubError;
 
                             const { error: privError } = await window.db.from('private_details').insert({
                                 id: userId,
@@ -515,12 +489,12 @@
                                 email: email,
                                 phone: document.getElementById('reg-phone').value
                             });
-                            if (privError) throw new Error('Falha nos contatos: ' + privError.message);
+                            if (privError) throw privError;
 
-                            alert("Cadastro realizado com sucesso! Você já está conectado.");
+                            alert("Sucesso! Cadastro realizado e perfil publicado.");
                             regForm.reset(); 
                         } catch (error) {
-                            alert(error.message);
+                            alert("Erro ao cadastrar: " + error.message);
                         } finally {
                             btn.innerHTML = '<i class="fas fa-check"></i> Publicar Perfil e Entrar';
                         }
@@ -539,18 +513,20 @@
                             const { error } = await window.db.auth.updateUser({ password: newPassword });
                             if (error) throw error;
                             alert("Senha atualizada com sucesso!");
-                            window.showView('search');
+                            window.showView('home');
                         } catch (error) {
-                            alert("Erro ao atualizar senha: " + error.message);
+                            alert("ERRO: " + error.message);
                         } finally {
                             btn.innerHTML = 'Atualizar Senha';
                         }
                     });
                 }
+                
+                // Dispara o carregamento dos perfis logo que a página carrega pela primeira vez
+                setTimeout(() => { if(window.loadPublicProfiles) window.loadPublicProfiles(); }, 500);
+
             }
-        } catch (err) {
-            console.error("Erro fatal na estruturação do JS:", err);
-        }
+        } catch (err) { console.error(err); }
     </script>
 </body>
 </html>
